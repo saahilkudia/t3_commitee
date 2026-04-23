@@ -1,0 +1,2048 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Takmeel ERP | Builders & Developers</title>
+    <!-- Tailwind CSS with custom configuration for Dark Mode and Gold Theme -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gold: {
+                            400: '#d4af37',
+                            500: '#B8904D',
+                            600: '#a37e40',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        body {
+            background-color: #f8fafc;
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 20px 20px;
+            overflow: hidden;
+        }
+
+        .dark body {
+            background-color: #0f172a;
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+        }
+
+        /* Modern Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+        }
+
+        .dark .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+
+        /* Sidebar Floating Pills */
+        .nav-link { transition: all 0.2s ease-in-out; border: 1px solid transparent; font-weight: 600; padding: 0.85rem 1.25rem; font-size: 13.5px; display: flex; align-items: center; gap: 12px; margin-bottom: 6px; border-radius: 1rem; margin-left: 1rem; margin-right: 1rem; width: calc(100% - 2rem); }
+        .nav-link:hover { background-color: rgba(184, 144, 77, 0.08); color: #B8904D; }
+        .dark .nav-link:hover { background-color: rgba(184, 144, 77, 0.15); color: #B8904D; }
+
+        .nav-link.active { background-color: rgba(184, 144, 77, 0.12); color: #B8904D; border-color: rgba(184, 144, 77, 0.3); font-weight: 800; box-shadow: 0 4px 15px -3px rgba(184, 144, 77, 0.15); }
+
+        .modal-enter { animation: modalIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes modalIn { from { opacity: 0; transform: scale(0.95) translateY(10px); } to { opacity: 1; transform: scale(1) translateY(0); } }
+
+        /* Shake Animation for Authentication Error */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+        }
+        .animate-shake { animation: shake 0.5s ease-in-out; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 0px; } /* Hide horizontal scrollbar */
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .dark ::-webkit-scrollbar-thumb { background: #475569; }
+
+        /* PRINT ENGINE OVERHAUL - Professional Grayscale + Gold Accents */
+        @media print {
+            @page { margin: 15mm; }
+            html, body { height: auto !important; overflow: visible !important; display: block !important; background: white !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            body > *:not(#print-container) { display: none !important; }
+            #print-container { display: block !important; position: relative !important; width: 100% !important; height: auto !important; overflow: visible !important; font-family: 'Plus Jakarta Sans', sans-serif !important; }
+
+            .print-wrapper { border: 3px solid #1e293b; max-width: 100%; margin: 0 auto; box-sizing: border-box; }
+            .print-header-box { background-color: #1e293b !important; color: #ffffff !important; padding: 30px; text-align: center; border-bottom: 4px solid #B8904D !important; }
+            .print-header-box h1 { color: #ffffff !important; letter-spacing: 3px; }
+            .print-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            .print-table th, .print-table td { border: 1px solid #cbd5e1; padding: 12px 15px; font-size: 12px; color: #0f172a; }
+            .print-table th { background-color: #f8fafc !important; color: #1e293b !important; font-weight: 800; text-transform: uppercase; text-align: center; }
+            .print-table tfoot td, .print-table .print-total-row td { font-weight: 900; font-size: 14px; background-color: #f1f5f9 !important; border-top: 2px solid #1e293b !important; }
+
+            /* Text alignment overrides for PDF table generation */
+            .print-table .text-right { text-align: right !important; }
+            .print-table .text-center { text-align: center !important; }
+            .print-table .text-left { text-align: left !important; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="flex h-screen text-slate-800 dark:text-slate-200 transition-colors duration-300 relative">
+
+<div id="toast-container" class="fixed bottom-5 right-5 z-[200] flex flex-col gap-2"></div>
+
+<!-- THEME TOGGLE BUTTON (Outside Sidebar) -->
+<button onclick="toggleTheme()" class="fixed top-6 right-8 z-50 bg-white/90 dark:bg-slate-800/90 backdrop-blur-md p-3 rounded-full w-12 h-12 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:text-gold-500 dark:hover:text-gold-400 transition-all shadow-lg border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-gold-500" title="Toggle Dark Mode">
+    <i class="fa-solid fa-moon dark:hidden text-lg"></i>
+    <i class="fa-solid fa-sun hidden dark:inline text-amber-400 text-lg"></i>
+</button>
+
+<!-- CONFIRM MODAL -->
+<div id="modal-confirm" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[250] flex items-center justify-center p-4 transition-opacity">
+    <div class="glass-panel w-full max-w-sm rounded-[2rem] p-8 text-center modal-pop">
+        <div class="w-16 h-16 bg-rose-100 dark:bg-rose-500/20 text-rose-600 dark:text-rose-400 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
+        <h3 class="text-xl font-black text-slate-900 dark:text-white mb-2" id="confirm-title">Are you sure?</h3>
+        <p class="text-sm font-medium text-slate-500 dark:text-slate-400 mb-6" id="confirm-msg">This action cannot be undone.</p>
+        <div class="flex gap-3">
+            <button id="btn-confirm-cancel" class="flex-1 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
+            <button id="btn-confirm-ok" class="flex-1 py-3 bg-rose-600 text-white rounded-xl font-bold hover:bg-rose-700 transition-colors shadow-lg shadow-rose-500/30">Confirm</button>
+        </div>
+    </div>
+</div>
+
+<!-- LOGIN -->
+<div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xl transition-all duration-500">
+    <div id="login-card" class="glass-panel p-10 w-full max-w-sm text-center rounded-[2.5rem] border-t-8 border-t-gold-500 shadow-2xl">
+        <!-- PERFECT CIRCLE LOGO MASK -->
+        <div class="w-32 h-32 mx-auto mb-6 rounded-full overflow-hidden border-4 border-gold-500 shadow-2xl flex items-center justify-center bg-white">
+            <img src="logo.jpg" onerror="this.src='https://ui-avatars.com/api/?name=Takmeel&background=fff&color=B8904D&size=128&font-size=0.33&bold=true'" alt="Takmeel Logo" class="w-full h-full object-cover">
+        </div>
+
+        <h2 class="text-2xl font-black mb-1 tracking-tight text-slate-900 dark:text-white company-name-display">Takmeel ERP</h2>
+        <p class="text-xs font-bold text-gold-500 uppercase tracking-widest mb-8">Builders & Developers</p>
+        <form onsubmit="handleLogin(event)" class="space-y-4">
+            <input type="text" id="login-user" class="w-full p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 font-medium text-slate-900 dark:text-white placeholder-slate-400" placeholder="User ID" required>
+            <input type="password" id="login-pass" class="w-full p-4 rounded-2xl bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 outline-none focus:border-gold-500 focus:ring-2 focus:ring-gold-500/20 font-medium text-slate-900 dark:text-white placeholder-slate-400" placeholder="Password" required>
+            <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-white font-bold p-4 rounded-2xl text-sm tracking-widest uppercase transition-all shadow-lg shadow-gold-500/30">Authenticate</button>
+        </form>
+    </div>
+</div>
+
+<!-- SIDEBAR: Fixed, Flush to Left -->
+<aside class="w-72 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xl border-r border-slate-200 dark:border-slate-800 flex flex-col flex-shrink-0 z-20 no-print transition-all duration-300 h-full shadow-2xl">
+    <div class="p-8 border-b border-slate-200/50 dark:border-slate-800/50 text-center">
+        <h1 class="font-black text-gold-500 tracking-tight text-2xl uppercase">Takmeel ERP</h1>
+        <p class="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mt-1" id="ui-role-display">Controller</p>
+    </div>
+    <nav class="flex-1 py-6 space-y-1 overflow-y-auto overflow-x-hidden custom-scrollbar text-slate-600 dark:text-slate-400">
+        <button onclick="showSection('dashboard')" data-tab="dashboard" id="nav-dashboard" class="nav-link active"><i class="fa-solid fa-chart-pie w-6 text-center"></i> Dashboard</button>
+        <button onclick="showSection('units')" data-tab="units" id="nav-units" class="nav-link"><i class="fa-solid fa-building w-6 text-center"></i> Unit Profiles</button>
+
+        <div class="px-8 py-4 mt-2 nav-divider" data-tab-group="elec,maint,payroll,outgoings"><p class="text-[10px] font-black text-gold-500 uppercase tracking-widest opacity-80">Sub-Ledgers</p></div>
+        <button onclick="showSection('elec')" data-tab="elec" id="nav-elec" class="nav-link"><i class="fa-solid fa-bolt w-6 text-center text-amber-500"></i> Bill Electricity</button>
+        <button onclick="showSection('maint')" data-tab="maint" id="nav-maint" class="nav-link"><i class="fa-solid fa-wrench w-6 text-center text-blue-500"></i> Bill Maint</button>
+        <button onclick="showSection('payroll')" data-tab="payroll" id="nav-payroll" class="nav-link"><i class="fa-solid fa-id-card w-6 text-center text-emerald-500"></i> Staff Payroll</button>
+        <button onclick="showSection('outgoings')" data-tab="outgoings" id="nav-outgoings" class="nav-link"><i class="fa-solid fa-wallet w-6 text-center text-rose-500"></i> Log Outgoings</button>
+        <button onclick="showSection('receipts')" data-tab="receipts" id="nav-receipts" class="nav-link"><i class="fa-solid fa-file-invoice w-6 text-center text-sky-500"></i> Invoices & Receipts</button>
+
+        <div class="px-8 py-4 mt-2 nav-divider" data-tab-group="settlement,coa,journal,tb,ledgers"><p class="text-[10px] font-black text-gold-500 uppercase tracking-widest opacity-80">General Ledger</p></div>
+        <button onclick="showSection('settlement')" data-tab="settlement" id="nav-settlement" class="nav-link"><i class="fa-solid fa-handshake w-6 text-center text-emerald-500"></i> Settlement Center</button>
+        <button onclick="showSection('coa')" data-tab="coa" id="nav-coa" class="nav-link"><i class="fa-solid fa-sitemap w-6 text-center text-indigo-500"></i> Chart of Accounts</button>
+        <button onclick="showSection('journal')" data-tab="journal" id="nav-journal" class="nav-link"><i class="fa-solid fa-book-journal-whills w-6 text-center text-blue-500"></i> Journal Vouchers</button>
+        <button onclick="showSection('tb')" data-tab="tb" id="nav-tb" class="nav-link"><i class="fa-solid fa-scale-balanced w-6 text-center text-amber-500"></i> Trial Balance</button>
+        <button onclick="showSection('ledgers')" data-tab="ledgers" id="nav-ledgers" class="nav-link"><i class="fa-solid fa-book-open w-6 text-center text-rose-500"></i> Statement of Acct</button>
+
+        <div class="px-8 py-4 mt-2 nav-divider" data-tab-group="income,balance"><p class="text-[10px] font-black text-gold-500 uppercase tracking-widest opacity-80">Financial Reports</p></div>
+        <button onclick="showSection('income')" data-tab="income" id="nav-income" class="nav-link"><i class="fa-solid fa-chart-line w-6 text-center text-emerald-500"></i> Income Statement</button>
+        <button onclick="showSection('balance')" data-tab="balance" id="nav-balance" class="nav-link"><i class="fa-solid fa-scale-unbalanced w-6 text-center text-indigo-500"></i> Balance Sheet</button>
+
+        <div class="px-8 py-4 mt-2 nav-divider" data-tab-group="params,users,settings"><p class="text-[10px] font-black text-gold-500 uppercase tracking-widest opacity-80">System</p></div>
+        <button onclick="showSection('params')" data-tab="params" id="nav-params" class="nav-link"><i class="fa-solid fa-sliders w-6 text-center"></i> Parameters</button>
+        <button onclick="showSection('settings')" data-tab="settings" id="nav-settings" class="nav-link"><i class="fa-solid fa-gear w-6 text-center"></i> Settings</button>
+        <button onclick="showSection('users')" data-tab="users" id="nav-users" class="nav-link"><i class="fa-solid fa-user-shield w-6 text-center text-purple-500"></i> User Management</button>
+    </nav>
+    <div class="p-6 border-t border-slate-200/50 dark:border-slate-800/50">
+        <button onclick="location.reload()" class="w-full p-4 text-rose-500 bg-rose-50 dark:bg-rose-500/10 hover:bg-rose-600 hover:text-white rounded-xl font-black text-xs uppercase tracking-widest transition-colors shadow-sm" title="Logout">
+            <i class="fa-solid fa-power-off mr-2"></i> Logout
+        </button>
+    </div>
+</aside>
+
+<!-- MAIN WORKSPACE -->
+<main class="flex-1 overflow-y-auto p-4 md:p-8 lg:p-12 relative no-print custom-scrollbar">
+
+    <!-- DASHBOARD -->
+    <div id="section-dashboard" class="space-y-8 animate-in fade-in duration-500">
+        <header class="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
+            <div>
+                <h1 class="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Reserve Snapshot</h1>
+                <p class="text-sm font-bold text-gold-500 mt-1 uppercase tracking-widest company-name-display">Takmeel Builders & Developers</p>
+            </div>
+            <span id="current-date" class="px-5 py-2 glass-panel rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 shadow-sm border border-slate-200 dark:border-slate-700"></span>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="glass-panel p-8 rounded-[2rem] border-t-4 border-t-emerald-500">
+                <div class="flex justify-between items-start mb-2">
+                    <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">A/R (Pending In)</p>
+                    <i class="fa-solid fa-arrow-turn-down text-emerald-500"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-800 dark:text-white" id="dash-ar">Rs. 0</h2>
+            </div>
+            <div class="glass-panel p-8 rounded-[2rem] border-t-4 border-t-rose-500">
+                <div class="flex justify-between items-start mb-2">
+                    <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">A/P (Pending Out)</p>
+                    <i class="fa-solid fa-arrow-turn-up text-rose-500"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-800 dark:text-white" id="dash-ap">Rs. 0</h2>
+            </div>
+            <div class="glass-panel p-8 rounded-[2rem] border-t-4 border-t-blue-500">
+                <div class="flex justify-between items-start mb-2">
+                    <p class="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Liquid Reserves</p>
+                    <i class="fa-solid fa-wallet text-blue-500"></i>
+                </div>
+                <h2 class="text-3xl font-black text-slate-800 dark:text-white" id="dash-net">Rs. 0</h2>
+            </div>
+            <div class="glass-panel p-8 rounded-[2rem] border-t-4 border-t-gold-500 bg-gold-50/30 dark:bg-gold-500/10 relative overflow-hidden">
+                <div class="absolute -right-4 -top-4 text-gold-500/20 text-6xl"><i class="fa-solid fa-building-columns"></i></div>
+                <div class="relative z-10">
+                    <p class="text-[10px] font-bold text-gold-600 dark:text-gold-400 uppercase tracking-widest mb-2">Building Net Worth</p>
+                    <h2 class="text-3xl font-black text-slate-900 dark:text-white" id="dash-building-net">Rs. 0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12">
+            <h3 class="font-black text-slate-800 dark:text-white uppercase tracking-widest text-sm mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-money-bill-transfer text-gold-500"></i> Cash Flow (Actual Money Moved)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="glass-panel p-8 rounded-[2rem] border-t-4 border-t-emerald-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Collected (Cash In)</p>
+                        <i class="fa-solid fa-arrow-trend-up text-emerald-500"></i>
+                    </div>
+                    <h2 class="text-4xl font-black text-slate-800 dark:text-white" id="dash-cash-in">Rs. 0</h2>
+                </div>
+                <div class="glass-panel p-8 rounded-[2rem] border-t-4 border-t-rose-500">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Spent (Cash Out)</p>
+                        <i class="fa-solid fa-arrow-trend-down text-rose-500"></i>
+                    </div>
+                    <h2 class="text-4xl font-black text-slate-800 dark:text-white" id="dash-cash-out">Rs. 0</h2>
+                </div>
+                <div class="glass-panel p-8 rounded-[2rem] border-t-4 border-t-blue-500 bg-blue-50/30 dark:bg-blue-500/10">
+                    <div class="flex justify-between items-start mb-2">
+                        <p class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest">Net Cash Flow</p>
+                        <i class="fa-solid fa-scale-balanced text-blue-500"></i>
+                    </div>
+                    <h2 class="text-4xl font-black text-slate-900 dark:text-white" id="dash-cash-net">Rs. 0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-12">
+            <h3 class="font-black text-slate-800 dark:text-white uppercase tracking-widest text-sm mb-6 flex items-center gap-2">
+                <i class="fa-solid fa-building-columns text-gold-500"></i> Bank & Cash Accounts
+            </h3>
+            <div id="dash-accounts" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
+        </div>
+    </div>
+
+    <!-- SETTINGS SECTION -->
+    <div id="section-settings" class="hidden space-y-6 animate-in fade-in duration-500">
+        <h1 class="text-3xl font-black text-slate-900 dark:text-white mb-6">System Settings</h1>
+        <div class="glass-panel p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-700 max-w-4xl">
+            <form id="form-settings" onsubmit="handleSettingsSave(event)" class="space-y-8">
+
+                <div>
+                    <h3 class="text-sm font-black text-gold-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-6"><i class="fa-solid fa-file-invoice-dollar mr-2"></i> Billing Defaults</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Default Maint. Fee (Rs.)</label>
+                            <input type="number" id="set-maint-fee" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Default Fixed Charges</label>
+                            <input type="number" id="set-elec-fixed" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required>
+                        </div>
+                        <div>
+                            <!-- NOW EDITABLE -->
+                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Electricity Unit Price</label>
+                            <input type="number" step="0.01" id="set-elec-rate" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-emerald-600 dark:text-emerald-400" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4">
+                    <h3 class="text-sm font-black text-gold-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-6"><i class="fa-solid fa-file-pdf mr-2"></i> Print & Document Preferences</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="col-span-2">
+                            <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Official Company Name</label>
+                            <input type="text" id="set-company-name" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-8 mt-8 border-t border-slate-200 dark:border-slate-700">
+                    <h3 class="text-sm font-black text-rose-500 uppercase tracking-widest mb-4">
+                        <i class="fa-solid fa-database mr-2"></i>Database Maintenance
+                    </h3>
+                    <div class="flex flex-wrap gap-4">
+                        <a href="/api/system/backup" class="bg-slate-800 dark:bg-slate-700 text-white px-6 py-4 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-slate-900 transition-all shadow-md">
+                            <i class="fa-solid fa-download"></i> Download SQL Backup
+                        </a>
+                        <button type="button" onclick="document.getElementById('restore-file').click()" class="bg-rose-600 text-white px-6 py-4 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-rose-700 transition-all shadow-md">
+                            <i class="fa-solid fa-upload"></i> Restore from File
+                        </button>
+                        <input type="file" id="restore-file" class="hidden" accept=".sql" onchange="handleDatabaseRestore(this)">
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-3 font-medium italic">
+                        * Note: Restoration will overwrite all current data. Always download a backup before restoring.
+                    </p>
+                </div>
+
+                <div class="pt-10 flex justify-end">
+                    <button type="submit" class="bg-gold-500 hover:bg-gold-600 text-white px-10 py-4 rounded-xl font-black uppercase tracking-widest shadow-lg shadow-gold-500/30 transition-all">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- CHART OF ACCOUNTS -->
+    <div id="section-coa" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white">Chart of Accounts</h1>
+            <button onclick="openModal('modal-coa')" class="bg-gold-500 hover:bg-gold-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-gold-500/30">+ Add Account Head</button>
+        </div>
+        <div class="grid grid-cols-5 gap-4 mb-6">
+            <div class="glass-panel p-4 rounded-2xl text-center"><h4 class="font-black text-emerald-600 dark:text-emerald-400">ASSETS</h4><p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Normal: Debit</p></div>
+            <div class="glass-panel p-4 rounded-2xl text-center"><h4 class="font-black text-rose-600 dark:text-rose-400">LIABILITY</h4><p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Normal: Credit</p></div>
+            <div class="glass-panel p-4 rounded-2xl text-center"><h4 class="font-black text-purple-600 dark:text-purple-400">EQUITY</h4><p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Normal: Credit</p></div>
+            <div class="glass-panel p-4 rounded-2xl text-center"><h4 class="font-black text-blue-600 dark:text-blue-400">REVENUE</h4><p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Normal: Credit</p></div>
+            <div class="glass-panel p-4 rounded-2xl text-center"><h4 class="font-black text-orange-600 dark:text-orange-400">EXPENSE</h4><p class="text-[9px] font-bold text-slate-400 uppercase mt-1">Normal: Debit</p></div>
+        </div>
+        <div class="glass-panel rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-700">
+            <table class="w-full text-left">
+                <thead class="bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                <tr><th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Code</th><th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Account Name</th><th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Category</th><th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Tag</th><th class="text-right py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Balance</th><th class="text-right py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Action</th></tr>
+                </thead>
+                <tbody id="table-coa" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- JOURNAL VOUCHERS -->
+    <div id="section-journal" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white">Journal Vouchers</h1>
+            <button onclick="openModal('modal-jv')" class="bg-gold-500 hover:bg-gold-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-gold-500/30">+ Manual JV</button>
+        </div>
+        <div class="glass-panel rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-700">
+            <table class="w-full text-left">
+                <thead class="bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                <tr><th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Voucher #</th><th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Date</th><th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Memo</th><th class="text-right py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total Dr/Cr</th><th class="text-center py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Status</th></tr>
+                </thead>
+                <tbody id="table-jvs" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- DYNAMIC TRIAL BALANCE -->
+    <div id="section-tb" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white">Trial Balance</h1>
+            <button onclick="printTrialBalance()" class="glass-panel text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-3 rounded-xl font-bold transition-all shadow-sm border border-slate-200 dark:border-slate-700"><i class="fa-solid fa-print mr-2 text-gold-500"></i> Print Document</button>
+        </div>
+        <div class="glass-panel p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-700">
+            <div class="text-center mb-8 border-b border-slate-200 dark:border-slate-700 pb-6">
+                <h2 class="text-2xl font-black uppercase tracking-widest text-slate-900 dark:text-white company-name-display">Takmeel Builders & Developers</h2>
+                <h3 class="text-lg font-bold text-slate-600 dark:text-slate-400 mt-1 uppercase tracking-widest">General Trial Balance</h3>
+                <p class="text-sm font-bold text-gold-500 mt-2" id="tb-date"></p>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="border-b-2 border-slate-300 dark:border-slate-600">
+                <tr><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Code</th><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Account Name</th><th class="text-right py-3 px-4 w-32 text-slate-500 dark:text-slate-400 uppercase tracking-widest">Debit (Dr)</th><th class="text-right py-3 px-4 w-32 text-slate-500 dark:text-slate-400 uppercase tracking-widest">Credit (Cr)</th></tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700/50" id="tb-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- SETTLEMENT CENTER -->
+    <div id="section-settlement" class="hidden space-y-6">
+        <header class="flex justify-between items-end mb-6">
+            <div><h1 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Settlement Center</h1><p class="text-sm font-medium text-gold-500 mt-1">Clear invoices and process payments here.</p></div>
+        </header>
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            <div class="glass-panel rounded-[2.5rem] overflow-hidden flex flex-col h-[500px] border border-slate-200 dark:border-slate-700">
+                <div class="bg-emerald-50/50 dark:bg-emerald-900/20 p-6 border-b border-emerald-100 dark:border-emerald-900/50 flex items-center justify-between">
+                    <h3 class="font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest text-sm">Waiting For Money (A/R)</h3>
+                    <i class="fa-solid fa-arrow-turn-down text-emerald-500"></i>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
+                    <table class="w-full text-left text-sm"><tbody id="table-ar" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody></table>
+                </div>
+            </div>
+            <div class="glass-panel rounded-[2.5rem] overflow-hidden flex flex-col h-[500px] border border-slate-200 dark:border-slate-700">
+                <div class="bg-rose-50/50 dark:bg-rose-900/20 p-6 border-b border-rose-100 dark:border-rose-900/50 flex items-center justify-between">
+                    <h3 class="font-black text-rose-700 dark:text-rose-400 uppercase tracking-widest text-sm">We Need to Pay (A/P)</h3>
+                    <i class="fa-solid fa-arrow-turn-up text-rose-500"></i>
+                </div>
+                <div class="flex-1 overflow-y-auto custom-scrollbar p-2">
+                    <table class="w-full text-left text-sm"><tbody id="table-ap" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody></table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STATEMENT OF ACCOUNT (LEDGERS) -->
+    <div id="section-ledgers" class="hidden space-y-6">
+        <h1 class="text-3xl font-black text-slate-900 dark:text-white">Statement of Account</h1>
+        <div class="glass-panel p-8 rounded-[2rem] flex flex-wrap gap-4 items-end border border-slate-200 dark:border-slate-700">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Ledger Type</label>
+                <select id="ledger-type" onchange="populateLedgerTargets()" class="w-full p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white"><option value="BANK">Financial Account (Bank/Cash)</option><option value="UNIT">Account Receivable (Unit)</option><option value="STAFF">Accounts Payable (Staff)</option></select>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Select Entity</label>
+                <select id="ledger-target" class="w-full p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white"></select>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">From</label>
+                <input type="date" id="l-start" class="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-gold-500 text-slate-900 dark:text-white font-medium">
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">To</label>
+                <input type="date" id="l-end" class="p-4 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-gold-500 text-slate-900 dark:text-white font-medium">
+            </div>
+            <button onclick="generateLedger()" class="bg-gold-500 hover:bg-gold-600 text-white px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-gold-500/30 transition-all h-[58px]">Generate</button>
+        </div>
+
+        <div id="ledger-view-area" class="hidden glass-panel p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-700 mt-8">
+            <div class="flex justify-between items-start mb-8 border-b border-slate-200 dark:border-slate-700 pb-6">
+                <div>
+                    <h2 class="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-widest" id="lv-title">Ledger Account</h2>
+                    <p class="text-sm font-bold text-gold-500 mt-2" id="lv-date"></p>
+                </div>
+                <button onclick="exportLedgerPDF()" class="glass-panel text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-3 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-700"><i class="fa-solid fa-file-pdf mr-2 text-rose-500"></i> Print / PDF</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                    <thead class="border-b-2 border-slate-300 dark:border-slate-600" id="lv-head"></thead>
+                    <tbody id="lv-body" class="divide-y divide-slate-100 dark:divide-slate-700/50 text-slate-700 dark:text-slate-300"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- INCOME STATEMENT -->
+    <div id="section-income" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white">Income Statement</h1>
+            <button onclick="printIncomeStatement()" class="glass-panel text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-3 rounded-xl font-bold transition-all shadow-sm border border-slate-200 dark:border-slate-700"><i class="fa-solid fa-print mr-2 text-gold-500"></i> Print Document</button>
+        </div>
+        <div class="glass-panel p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-700 max-w-4xl mx-auto">
+            <div class="text-center mb-8 border-b border-slate-200 dark:border-slate-700 pb-6">
+                <h2 class="text-2xl font-black uppercase tracking-widest text-slate-900 dark:text-white company-name-display">Takmeel Builders & Developers</h2>
+                <h3 class="text-lg font-bold text-slate-600 dark:text-slate-400 mt-1 uppercase tracking-widest">Income Statement</h3>
+                <p class="text-sm font-bold text-gold-500 mt-2" id="is-date"></p>
+            </div>
+
+            <h3 class="font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest mb-4 mt-6 text-sm border-b-2 border-gold-500 inline-block pb-1">Revenue</h3>
+            <table class="w-full text-sm mb-6">
+                <thead class="border-b-2 border-slate-300 dark:border-slate-600">
+                <tr><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left w-24">Code</th><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Account Name</th><th class="text-right py-3 px-4 w-40 text-slate-500 dark:text-slate-400 uppercase tracking-widest">Amount (Cr)</th></tr>
+                </thead>
+                <tbody id="is-rev-body" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody>
+                <tfoot class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-600">
+                <tr><td colspan="2" class="py-5 px-6 text-right font-black uppercase tracking-widest text-[10px] text-slate-500 dark:text-slate-400">Total Revenue</td><td class="text-right py-5 px-6 font-black text-slate-900 dark:text-white" id="is-total-rev">0</td></tr>
+                </tfoot>
+            </table>
+
+            <h3 class="font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest mb-4 mt-6 text-sm border-b-2 border-gold-500 inline-block pb-1">Operating Expenses</h3>
+            <table class="w-full text-sm mb-6">
+                <thead class="border-b-2 border-slate-300 dark:border-slate-600">
+                <tr><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left w-24">Code</th><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Account Name</th><th class="text-right py-3 px-4 w-40 text-slate-500 dark:text-slate-400 uppercase tracking-widest">Amount (Dr)</th></tr>
+                </thead>
+                <tbody id="is-exp-body" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody>
+                <tfoot class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-600">
+                <tr><td colspan="2" class="py-5 px-6 text-right font-black uppercase tracking-widest text-[10px] text-slate-500 dark:text-slate-400">Total Expenses</td><td class="text-right py-5 px-6 font-black text-slate-900 dark:text-white" id="is-total-exp">0</td></tr>
+                </tfoot>
+            </table>
+
+            <div class="glass-panel border-l-4 border-l-gold-500 p-8 rounded-[2rem] mt-8 flex justify-between items-center shadow-md">
+                <div class="flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-full bg-gold-50 dark:bg-gold-900/30 text-gold-500 flex items-center justify-center text-2xl shadow-sm">
+                        <i class="fa-solid fa-scale-balanced"></i>
+                    </div>
+                    <h3 class="text-xl font-black uppercase tracking-widest text-slate-900 dark:text-white">Net Income (Profit / Loss)</h3>
+                </div>
+                <h3 class="text-4xl font-black" id="is-net-income">0</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- BALANCE SHEET -->
+    <div id="section-balance" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white">Balance Sheet</h1>
+            <button onclick="printBalanceSheet()" class="glass-panel text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-3 rounded-xl font-bold transition-all shadow-sm border border-slate-200 dark:border-slate-700"><i class="fa-solid fa-print mr-2 text-gold-500"></i> Print Document</button>
+        </div>
+        <div class="glass-panel p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-700">
+            <div class="text-center mb-8 border-b border-slate-200 dark:border-slate-700 pb-6">
+                <h2 class="text-2xl font-black uppercase tracking-widest text-slate-900 dark:text-white company-name-display">Takmeel Builders & Developers</h2>
+                <h3 class="text-lg font-bold text-slate-600 dark:text-slate-400 mt-1 uppercase tracking-widest">Balance Sheet</h3>
+                <p class="text-sm font-bold text-gold-500 mt-2" id="bs-date"></p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12">
+                <div class="glass-panel p-8 rounded-3xl border border-slate-200/50 dark:border-slate-700/50">
+                    <h3 class="font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest mb-6 text-lg border-b-2 border-emerald-500 inline-block pb-1">Assets</h3>
+                    <table class="w-full text-sm mb-6">
+                        <thead class="border-b-2 border-slate-300 dark:border-slate-600">
+                        <tr><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left w-24">Code</th><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Account Name</th><th class="text-right py-3 px-4 w-32 text-slate-500 dark:text-slate-400 uppercase tracking-widest">Amount (Dr)</th></tr>
+                        </thead>
+                        <tbody id="bs-ast-body" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody>
+                        <tfoot class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-600">
+                        <tr><td colspan="2" class="py-5 px-6 text-right font-black uppercase tracking-widest text-[10px] text-slate-500 dark:text-slate-400">Total Assets</td><td class="text-right py-5 px-6 font-black text-emerald-600 dark:text-emerald-400" id="bs-total-ast">0</td></tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="glass-panel p-8 rounded-3xl border border-slate-200/50 dark:border-slate-700/50">
+                    <h3 class="font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest mb-6 text-lg border-b-2 border-rose-500 inline-block pb-1">Liabilities</h3>
+                    <table class="w-full text-sm mb-8">
+                        <thead class="border-b-2 border-slate-300 dark:border-slate-600">
+                        <tr><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left w-24">Code</th><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Account Name</th><th class="text-right py-3 px-4 w-32 text-slate-500 dark:text-slate-400 uppercase tracking-widest">Amount (Cr)</th></tr>
+                        </thead>
+                        <tbody id="bs-liab-body" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody>
+                        <tfoot class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-600">
+                        <tr><td colspan="2" class="py-5 px-6 text-right font-black uppercase tracking-widest text-[10px] text-slate-500 dark:text-slate-400">Total Liabilities</td><td class="text-right py-5 px-6 font-black text-slate-900 dark:text-white" id="bs-total-liab">0</td></tr>
+                        </tfoot>
+                    </table>
+
+                    <h3 class="font-black text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-6 text-lg border-b-2 border-purple-500 inline-block pb-1">Owner's Equity</h3>
+                    <table class="w-full text-sm mb-6">
+                        <thead class="border-b-2 border-slate-300 dark:border-slate-600">
+                        <tr><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left w-24">Code</th><th class="py-3 px-4 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Account Name</th><th class="text-right py-3 px-4 w-32 text-slate-500 dark:text-slate-400 uppercase tracking-widest">Amount (Cr)</th></tr>
+                        </thead>
+                        <tbody id="bs-eq-body" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody>
+                        <tfoot class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-600">
+                        <tr><td colspan="2" class="py-5 px-6 text-right font-black uppercase tracking-widest text-[10px] text-slate-500 dark:text-slate-400">Total Equity</td><td class="text-right py-5 px-6 font-black text-slate-900 dark:text-white" id="bs-total-eq">0</td></tr>
+                        </tfoot>
+                    </table>
+
+                    <div class="glass-panel border-l-4 border-l-blue-500 p-6 rounded-2xl mt-8 flex justify-between items-center shadow-md">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-50 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center text-lg shadow-sm">
+                                <i class="fa-solid fa-equals"></i>
+                            </div>
+                            <h3 class="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white">Total Liab. & Equity</h3>
+                        </div>
+                        <h3 class="text-2xl font-black" id="bs-total-liab-eq">0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OTHER SECTIONS -->
+    <div id="section-units" class="hidden space-y-6">
+        <div class="flex justify-between items-center"><h1 class="text-3xl font-black text-slate-900 dark:text-white">Unit Profiles</h1><button onclick="openModal('modal-unit')" class="bg-gold-500 hover:bg-gold-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-gold-500/30">+ Add Property</button></div>
+        <div class="glass-panel rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-700">
+                <div class="relative">
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="unit-search" onkeyup="loadUnits()" placeholder="Filter properties by any detail..." class="w-full pl-12 pr-4 py-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-sm font-medium transition-all text-slate-900 dark:text-white placeholder-slate-400">
+                </div>
+            </div>
+            <table class="w-full text-left text-sm"><thead class="bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700"><tr><th class="py-4 px-8 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Unit #</th><th class="py-4 px-8 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Owner</th><th class="py-4 px-8 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">CNIC</th><th class="text-right py-4 px-8 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Actions</th></tr></thead><tbody id="table-units" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody></table>
+        </div>
+    </div>
+
+    <div id="section-users" class="hidden space-y-6">
+        <div class="flex justify-between items-center"><h1 class="text-3xl font-black text-slate-900 dark:text-white">User Management</h1><button onclick="openNewUserModal()" class="bg-gold-500 hover:bg-gold-600 text-white px-6 py-3 rounded-xl font-bold transition-all shadow-lg shadow-gold-500/30">+ Create Profile</button></div>
+        <div class="glass-panel rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-700"><table class="w-full text-left"><thead class="bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700"><tr><th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Username</th><th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Role</th><th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Access Level</th><th class="text-right py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Action</th></tr></thead><tbody id="table-users" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody></table></div>
+    </div>
+
+    <div id="section-params" class="hidden space-y-6">
+        <h1 class="text-3xl font-black text-slate-900 dark:text-white mb-6">System Parameters</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="glass-panel p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700"><div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-4 mb-4"><h3 class="font-bold text-slate-900 dark:text-white uppercase tracking-widest text-sm">Personnel Registry</h3><button onclick="openModal('modal-emp')" class="text-gold-500 hover:text-gold-600 font-bold text-xs uppercase"><i class="fa-solid fa-plus"></i> Add</button></div><table class="w-full"><tbody id="table-params-emp" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody></table></div>
+            <div class="glass-panel p-8 rounded-[2rem] border border-slate-200 dark:border-slate-700"><div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-700 pb-4 mb-4"><h3 class="font-bold text-slate-900 dark:text-white uppercase tracking-widest text-sm">Expense Categories</h3><button onclick="openModal('modal-cat')" class="text-gold-500 hover:text-gold-600 font-bold text-xs uppercase"><i class="fa-solid fa-plus"></i> Add</button></div><table class="w-full"><tbody id="table-params-cat" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody></table></div>
+        </div>
+    </div>
+
+    <!-- FORM PANELS (Elec, Maint, Outgoings, Payroll) -->
+    <div id="section-elec" class="hidden flex items-center justify-center min-h-[80vh]">
+        <div class="glass-panel w-full max-w-lg p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-700 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-amber-500"></div>
+            <h2 class="text-2xl font-black mb-2 text-slate-900 dark:text-white flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-500 flex items-center justify-center"><i class="fa-solid fa-bolt"></i></div> Bill Electricity</h2>
+            <p class="text-xs font-bold text-gold-500 uppercase tracking-widest mb-8 ml-13">Generates A/R Voucher</p>
+            <form id="form-elec" onsubmit="handleElecSubmit(event)" class="space-y-5">
+                <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Select Property</label><select id="elec-unit" onchange="fetchLastReading()" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required></select></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Previous Read</label><input type="number" id="elec-prev" class="w-full p-4 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-400 dark:text-slate-500" readonly></div>
+                    <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Current Read</label><input type="number" id="elec-curr" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required></div>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Unit Price (Rs.)</label><input type="number" step="0.01" id="elec-rate" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required></div>
+                    <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Fixed Charges</label><input type="number" id="elec-fixed" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required></div>
+                    <!-- Penalty is now a flat amount manually entered -->
+                    <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Penalty (Rs.)</label><input type="number" id="elec-penalty" placeholder="0" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-amber-600 dark:text-amber-400 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"></div>
+                </div>
+                <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Billing Month</label><input type="text" id="elec-month" placeholder="e.g. May 2026" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-medium text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required></div>
+                <button type="submit" class="w-full bg-gold-500 text-white p-4 rounded-xl font-black uppercase tracking-widest hover:bg-gold-600 transition-all mt-6 shadow-lg shadow-gold-500/30">Generate Invoice</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="section-maint" class="hidden flex items-center justify-center min-h-[80vh]">
+        <div class="glass-panel w-full max-w-lg p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-700 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-blue-500"></div>
+            <h2 class="text-2xl font-black mb-2 text-slate-900 dark:text-white flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-500 flex items-center justify-center"><i class="fa-solid fa-wrench"></i></div> Bill Maintenance</h2>
+            <p class="text-xs font-bold text-gold-500 uppercase tracking-widest mb-8 ml-13">Generates A/R Voucher</p>
+            <form id="form-maint" onsubmit="handleMaintSubmit(event)" class="space-y-5">
+                <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Select Property</label><select id="maint-unit" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required></select></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Fee Amount (Rs.)</label><input type="number" id="maint-amt" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required></div>
+                    <!-- Penalty is now a flat amount manually entered -->
+                    <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Penalty (Rs.)</label><input type="number" id="maint-penalty" placeholder="0" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-amber-600 dark:text-amber-400 outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"></div>
+                </div>
+                <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2">Month</label><input type="text" id="maint-month" placeholder="Month" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-medium text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required></div>
+                <button type="submit" class="w-full bg-gold-500 text-white p-4 rounded-xl font-black uppercase tracking-widest hover:bg-gold-600 transition-all mt-6 shadow-lg shadow-gold-500/30">Generate Invoice</button>
+                <button type="button" onclick="handleBulkMaint()" class="w-full border-2 border-gold-500 text-gold-600 dark:text-gold-400 p-4 rounded-xl font-black uppercase tracking-widest hover:bg-gold-500 hover:text-white transition-all mt-3">Generate For All Units (Bulk)</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="section-payroll" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white">Staff Payroll</h1>
+            <div class="flex gap-3">
+                <button onclick="openModal('modal-bulk-accrual')" class="glass-panel text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest shadow-sm transition-all border border-slate-200 dark:border-slate-700">1. Generate A/P</button>
+                <button onclick="openBatchSettleModal()" class="bg-gold-500 text-white hover:bg-gold-600 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-gold-500/30 transition-all">2. Disburse Batch</button>
+            </div>
+        </div>
+        <div class="glass-panel rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-700">
+            <table class="w-full text-left text-sm"><thead class="bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700"><tr><th class="px-8 py-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Staff Member</th><th class="px-8 py-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">CNIC</th><th class="px-8 py-6 text-right text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Fixed Salary</th><th class="px-8 py-6 text-center text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Action</th></tr></thead><tbody id="table-payroll" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody><tfoot id="tfoot-payroll" class="bg-slate-50/50 dark:bg-slate-800/30 border-t-2 border-slate-200 dark:border-slate-700 font-black"></tfoot></table>
+        </div>
+    </div>
+
+    <div id="section-outgoings" class="hidden flex items-center justify-center min-h-[80vh]">
+        <div class="glass-panel w-full max-w-lg p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-700 relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-2 bg-rose-500"></div>
+            <h2 class="text-2xl font-black mb-2 text-slate-900 dark:text-white flex items-center gap-3"><div class="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-500 flex items-center justify-center"><i class="fa-solid fa-wallet"></i></div> Log Outgoing</h2>
+            <p class="text-xs font-bold text-gold-500 uppercase tracking-widest mb-8 ml-13">Generates A/P Voucher</p>
+            <form id="form-outgoings" onsubmit="handleOutgoingSave(event)" class="space-y-5">
+                <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Expense Category</label><select id="out-cat" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required></select></div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Amount (Rs.)</label><input type="number" id="out-amt" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required></div>
+                    <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Date</label><input type="date" id="out-date" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required></div>
+                </div>
+                <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Details / Notes</label><textarea id="out-desc" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" rows="2"></textarea></div>
+                <button type="submit" class="w-full py-4 bg-gold-500 text-white hover:bg-gold-600 rounded-xl font-black transition-all uppercase tracking-widest mt-6 shadow-lg shadow-gold-500/30">Generate A/P Voucher</button>
+            </form>
+        </div>
+    </div>
+    <!-- NEW: INVOICES & RECEIPTS HUB -->
+    <div id="section-receipts" class="hidden space-y-6">
+        <div class="flex justify-between items-center">
+            <h1 class="text-3xl font-black text-slate-900 dark:text-white">Invoices & Receipts Hub</h1>
+        </div>
+        <div class="glass-panel rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-700">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="relative flex-1 w-full">
+                    <i class="fa-solid fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400"></i>
+                    <input type="text" id="receipt-search" onkeyup="filterReceipts()" placeholder="Search by Unit # or Owner Name..." class="w-full pl-12 pr-4 py-3 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-sm font-medium transition-all text-slate-900 dark:text-white placeholder-slate-400">
+                </div>
+                <div class="flex gap-2 bg-slate-100/50 dark:bg-slate-800/50 p-1.5 rounded-xl border border-slate-200 dark:border-slate-700 w-full md:w-auto overflow-x-auto">
+                    <button onclick="setReceiptFilter('ALL')" id="btn-filter-ALL" class="px-5 py-2.5 rounded-lg text-xs font-black tracking-widest uppercase bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition-all whitespace-nowrap">All</button>
+                    <button onclick="setReceiptFilter('ELEC')" id="btn-filter-ELEC" class="px-5 py-2.5 rounded-lg text-xs font-black tracking-widest uppercase text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all whitespace-nowrap"><i class="fa-solid fa-bolt text-amber-500 mr-1"></i> Electric</button>
+                    <button onclick="setReceiptFilter('MAINT')" id="btn-filter-MAINT" class="px-5 py-2.5 rounded-lg text-xs font-black tracking-widest uppercase text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all whitespace-nowrap"><i class="fa-solid fa-wrench text-blue-500 mr-1"></i> Maint</button>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                    <tr>
+                        <th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Property / Owner</th>
+                        <th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Bill Details</th>
+                        <th class="py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Issue Date</th>
+                        <th class="text-center py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Status</th>
+                        <th class="text-right py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Total</th>
+                        <th class="text-right py-4 px-6 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-widest">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody id="table-receipts" class="divide-y divide-slate-100 dark:divide-slate-700/50"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- MODALS (Updated to Glass & Theme) -->
+
+<div id="modal-coa" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity">
+    <div class="glass-panel w-full max-w-lg rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-gold-500 shadow-2xl">
+        <h2 class="text-2xl font-black mb-6 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-4 uppercase tracking-widest">Chart of Accounts Entry</h2>
+        <form id="form-coa" onsubmit="handleCoASave(event)" class="space-y-5">
+            <input type="hidden" id="coa-id">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Account Name</label>
+                <input type="text" id="coa-name" placeholder="e.g. Meezan Bank" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required>
+                <p class="text-[9px] text-gold-600 dark:text-gold-400 mt-2 italic font-bold">Account code will be auto-generated based on the category.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Category</label>
+                    <select id="coa-cat" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required>
+                        <option value="ASSET">Asset (Normal Dr)</option><option value="LIABILITY">Liability (Normal Cr)</option><option value="EQUITY">Equity (Normal Cr)</option><option value="REVENUE">Revenue (Normal Cr)</option><option value="EXPENSE">Expense (Normal Dr)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">System Tag</label>
+                    <select id="coa-type" class="w-full p-4 bg-gold-50 dark:bg-gold-900/20 border border-gold-200 dark:border-gold-800/50 text-gold-900 dark:text-gold-400 rounded-xl font-bold outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required>
+                        <option value="BANK">Bank Account</option><option value="CASH">Petty Cash</option>
+                        <option value="AR">Receivable (Units)</option><option value="AP">Payable (Vendors)</option>
+                        <option value="REV">Revenue (Billing)</option><option value="EXP">Expense (Ops)</option>
+                        <option value="GEN">General / Equity</option>
+                    </select>
+                </div>
+            </div>
+            <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Opening Balance (Rs.)</label><input type="number" id="coa-bal" step="0.01" value="0" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required></div>
+            <div class="flex gap-4 pt-4"><button type="button" onclick="closeModal('modal-coa')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-gold-500 hover:bg-gold-600 text-white rounded-xl font-bold transition-all shadow-lg shadow-gold-500/30">Save Account Head</button></div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-jv" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity">
+    <div class="glass-panel w-full max-w-3xl rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-blue-500 shadow-2xl">
+        <h2 class="text-2xl font-black mb-6 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-4 uppercase tracking-widest"><i class="fa-solid fa-book-journal-whills mr-3 text-blue-500"></i> Post Journal Entry</h2>
+        <form id="form-jv" onsubmit="handleJVSubmit(event)" class="space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+                <input type="date" id="jv-date" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white" required>
+                <input type="text" id="jv-memo" placeholder="Voucher Description / Memo" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 text-slate-900 dark:text-white font-bold" required>
+            </div>
+            <div class="bg-slate-50/50 dark:bg-slate-800/30 p-6 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-4">Journal Lines (Debits must equal Credits)</label>
+                <div class="space-y-3">
+                    <div class="flex gap-3 items-center">
+                        <select id="jv-acc-1" class="flex-1 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm font-bold jv-dropdown text-slate-900 dark:text-white outline-none focus:border-gold-500" required></select>
+                        <input type="number" id="jv-dr-1" placeholder="Debit" class="w-32 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm text-right font-black text-emerald-600 dark:text-emerald-400 outline-none focus:border-emerald-500" onchange="document.getElementById('jv-cr-1').value = ''">
+                        <input type="number" id="jv-cr-1" placeholder="Credit" class="w-32 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm text-right font-black text-rose-600 dark:text-rose-400 outline-none focus:border-rose-500" onchange="document.getElementById('jv-dr-1').value = ''">
+                    </div>
+                    <div class="flex gap-3 items-center">
+                        <select id="jv-acc-2" class="flex-1 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm font-bold jv-dropdown text-slate-900 dark:text-white outline-none focus:border-gold-500" required></select>
+                        <input type="number" id="jv-dr-2" placeholder="Debit" class="w-32 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm text-right font-black text-emerald-600 dark:text-emerald-400 outline-none focus:border-emerald-500" onchange="document.getElementById('jv-cr-2').value = ''">
+                        <input type="number" id="jv-cr-2" placeholder="Credit" class="w-32 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-600 rounded-xl text-sm text-right font-black text-rose-600 dark:text-rose-400 outline-none focus:border-rose-500" onchange="document.getElementById('jv-dr-2').value = ''">
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-4 pt-4"><button type="button" onclick="closeModal('modal-jv')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold transition-all shadow-lg shadow-blue-500/30 uppercase tracking-widest">Post Voucher to GL</button></div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-settle" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity">
+    <div class="glass-panel w-full max-w-md rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-emerald-500 shadow-2xl">
+        <h2 class="text-2xl font-black mb-2 text-slate-900 dark:text-white uppercase tracking-widest">Clearance</h2>
+        <p class="text-[10px] font-bold text-gold-500 uppercase tracking-widest mb-8">Process GL Transaction</p>
+        <form id="form-settle" onsubmit="handleSettlementSubmit(event)" class="space-y-5">
+            <input type="hidden" id="stl-type"><input type="hidden" id="stl-id">
+            <div class="p-6 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl mb-6">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Pending Balance</p>
+                <p class="text-2xl font-black text-slate-900 dark:text-white mt-2" id="stl-amt"></p>
+                <p class="text-xs font-bold text-slate-500 dark:text-slate-400 mt-2" id="stl-desc"></p>
+            </div>
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Execution Amount (Rs.)</label>
+                <input type="number" id="stl-pay-amt" step="0.01" class="w-full p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl font-black text-emerald-700 dark:text-emerald-400 outline-none focus:ring-2 focus:ring-emerald-500" required>
+            </div>
+            <div><label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Process Via Asset A/C</label><select id="stl-acc" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 account-dropdown" required></select></div>
+            <div class="flex gap-4 pt-6"><button type="button" onclick="closeModal('modal-settle')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black transition-all uppercase tracking-widest shadow-lg shadow-emerald-500/30">Post to GL</button></div>
+        </form>
+    </div>
+</div>
+
+<!-- REPEATED CRUD MODALS STYLED TO MATCH -->
+<div id="modal-user" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity">
+    <div class="glass-panel w-full max-w-lg rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-purple-500 shadow-2xl">
+        <h2 class="text-2xl font-black mb-6 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-4 uppercase tracking-widest">Staff Profile</h2>
+        <form id="form-user" onsubmit="handleUserSave(event)" class="space-y-5">
+            <input type="hidden" id="u-id">
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="u-username" placeholder="Username" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required>
+                <input type="password" id="u-password" placeholder="Password" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required>
+            </div>
+            <div>
+                <select id="u-role" onchange="togglePermissionsView()" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required>
+                    <option value="STAFF">Standard Staff</option>
+                    <option value="ADMIN">Master Admin</option>
+                </select>
+            </div>
+
+            <!-- RESTORED & THEMED PERMISSIONS BLOCK -->
+            <div id="u-permissions-container" class="p-5 bg-slate-50/50 dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700 rounded-2xl">
+                <label class="block text-[10px] font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest mb-3">Module Access (Staff Only)</label>
+                <div class="grid grid-cols-2 gap-3 text-sm font-bold text-slate-700 dark:text-slate-300">
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="dashboard" class="perm-chk w-4 h-4 text-purple-600 rounded focus:ring-purple-500 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"> Dashboard</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="units" class="perm-chk w-4 h-4 text-purple-600 rounded focus:ring-purple-500 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"> Units Profile</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="elec,maint,payroll,outgoings" class="perm-chk w-4 h-4 text-purple-600 rounded focus:ring-purple-500 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"> Billing & Exp</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="settlement,coa,journal" class="perm-chk w-4 h-4 text-purple-600 rounded focus:ring-purple-500 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"> Gen Ledger</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="checkbox" value="tb,ledgers,income,balance" class="perm-chk w-4 h-4 text-purple-600 rounded focus:ring-purple-500 bg-white dark:bg-slate-900 border-slate-300 dark:border-slate-600"> Reports</label>
+                </div>
+            </div>
+
+            <div class="flex gap-4 pt-4">
+                <button type="button" onclick="closeModal('modal-user')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button>
+                <button type="submit" class="flex-1 py-4 bg-purple-600 hover:bg-purple-700 text-white rounded-xl font-bold shadow-lg shadow-purple-500/30 uppercase tracking-widest">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-unit" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-lg rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-gold-500 shadow-2xl"><h2 class="text-2xl font-black mb-6 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-4 uppercase tracking-widest">Register Unit</h2><form id="form-unit" onsubmit="handleUnitSave(event)" class="space-y-5"><input type="hidden" id="in-unit-id"><div class="grid grid-cols-2 gap-4"><input type="text" id="u-num" placeholder="Unit Number" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><input type="text" id="u-owner" placeholder="Owner Name" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required></div><input type="text" id="u-cnic" placeholder="CNIC Number" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500"><div class="flex gap-4 pt-4"><button type="button" onclick="closeModal('modal-unit')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-gold-500 hover:bg-gold-600 text-white rounded-xl font-bold shadow-lg shadow-gold-500/30 uppercase tracking-widest">Save</button></div></form></div></div>
+
+<div id="modal-bulk-accrual" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-sm rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-slate-800 dark:border-t-slate-400 shadow-2xl"><h2 class="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest">Batch Accrual</h2><form id="form-bulk-accrual" onsubmit="handleBulkAccrualSubmit(event)" class="space-y-5"><input type="text" id="bulk-month" placeholder="Salary Month" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><div class="flex gap-4 pt-2"><button type="button" onclick="closeModal('modal-bulk-accrual')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black shadow-lg uppercase tracking-widest">Generate</button></div></form></div></div>
+
+<div id="modal-pay-batch" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-md rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-emerald-500 shadow-2xl"><h2 class="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest">Batch Disburse</h2><form id="form-batch" onsubmit="handleBatchSettleSubmit(event)" class="space-y-5"><input type="text" id="batch-pay-month" placeholder="Salary Month" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><select id="batch-pay-bank" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 account-dropdown"></select><div class="flex gap-4 pt-4"><button type="button" onclick="closeModal('modal-pay-batch')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-black shadow-lg shadow-emerald-500/30 uppercase tracking-widest">Process</button></div></form></div></div>
+
+<div id="modal-pay-single" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-md rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-slate-800 dark:border-t-slate-400 shadow-2xl"><h2 class="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest">Log A/P</h2><form id="form-single-pay" onsubmit="handleSinglePaySubmit(event)" class="space-y-5"><input type="hidden" id="pay-emp-id"><div class="grid grid-cols-2 gap-4"><input type="text" id="pay-month" placeholder="Salary Month" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><input type="number" id="pay-amt" class="w-full p-4 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black text-slate-500 dark:text-slate-400 outline-none" readonly></div><textarea id="pay-rem" placeholder="Remarks..." class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-medium text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" rows="2"></textarea><div class="flex gap-4 pt-2"><button type="button" onclick="closeModal('modal-pay-single')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black shadow-lg uppercase tracking-widest">Create A/P</button></div></form></div></div>
+
+<div id="modal-emp" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-sm rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-gold-500 shadow-2xl"><h2 class="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest">Staff Registry</h2><form id="form-emp" onsubmit="handleEmpSave(event)" class="space-y-5"><input type="hidden" id="emp-id"> <input type="text" id="emp-name" placeholder="Full Name" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><input type="number" id="emp-sal" placeholder="Salary" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><div class="flex gap-4 pt-2"><button type="button" onclick="closeModal('modal-emp')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-gold-500 hover:bg-gold-600 text-white rounded-xl font-black shadow-lg uppercase tracking-widest">Save</button></div></form></div></div>
+
+<div id="modal-cat" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-xs rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-gold-500 shadow-2xl"><h2 class="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest">Category</h2><form id="form-cat" onsubmit="handleCatSave(event)" class="space-y-5"><input type="hidden" id="cat-id"> <input type="text" id="cat-name" placeholder="Category Name" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><div class="flex gap-4 pt-2"><button type="button" onclick="closeModal('modal-cat')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-gold-500 hover:bg-gold-600 text-white rounded-xl font-black shadow-lg uppercase tracking-widest">Add</button></div></form></div></div>
+
+<div id="modal-penalty" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[260] flex items-center justify-center p-4 transition-opacity">
+    <div class="glass-panel w-full max-w-sm rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-orange-500 shadow-2xl">
+        <h2 class="text-xl font-black mb-2 text-slate-900 dark:text-white uppercase tracking-widest">Apply Penalty</h2>
+        <p class="text-[10px] font-bold text-gold-500 uppercase tracking-widest mb-8">Maintenance Late Fee</p>
+        <div class="space-y-5">
+            <input type="hidden" id="penalty-bill-id">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Amount (PKR)</label>
+                <input type="number" id="penalty-input-amt" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 text-slate-900 dark:text-white" placeholder="Enter amount">
+            </div>
+            <div class="flex gap-4 pt-2">
+                <button type="button" onclick="closeModal('modal-penalty')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 transition-colors">Cancel</button>
+                <button type="button" onclick="submitCustomPenalty()" class="flex-1 py-4 bg-orange-500 hover:bg-orange-600 text-white rounded-xl font-black shadow-lg shadow-orange-500/30 uppercase tracking-widest">Apply</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- HIDDEN PRINT CONTAINER (Populated dynamically via JS) -->
+<div id="print-container" class="print-only"></div>
+
+<script>
+    const API_URL = '/api';
+    let currentUser = null;
+    let coaCache = [], jvCache = [], accountsCache = [], unitsCache = [], staffCache = [], catsCache = [], usersCache = [];
+    let rawElec = [], rawMaint = [], rawSal = [], rawExp = [];
+
+    // --- SETTINGS ENGINE ---
+    const defaultSettings = { maintFee: 2500, elecFixed: 0, elecRate: 35.0, companyName: "Takmeel Builders & Developers" };
+
+    function getSettings() {
+        const saved = localStorage.getItem('t3_settings');
+        return saved ? JSON.parse(saved) : defaultSettings;
+    }
+
+    function loadSettingsUI() {
+        const s = getSettings();
+        document.getElementById('set-maint-fee').value = s.maintFee;
+        document.getElementById('set-elec-fixed').value = s.elecFixed;
+        document.getElementById('set-elec-rate').value = s.elecRate;
+        document.getElementById('set-company-name').value = s.companyName;
+    }
+
+    function handleSettingsSave(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]');
+        const s = {
+            maintFee: parseFloat(document.getElementById('set-maint-fee').value),
+            elecFixed: parseFloat(document.getElementById('set-elec-fixed').value),
+            elecRate: parseFloat(document.getElementById('set-elec-rate').value),
+            companyName: document.getElementById('set-company-name').value
+        };
+        localStorage.setItem('t3_settings', JSON.stringify(s));
+        applySettingsToUI();
+        showButtonSuccess(btn, "Saved!");
+    }
+
+    function applySettingsToUI() {
+        const s = getSettings();
+        // Update UI Defaults dynamically
+        const maintAmtEl = document.getElementById('maint-amt');
+        if(maintAmtEl) maintAmtEl.value = s.maintFee;
+
+        const elecFixedEl = document.getElementById('elec-fixed');
+        if(elecFixedEl) elecFixedEl.value = s.elecFixed;
+
+        const elecRateEl = document.getElementById('elec-rate');
+        if(elecRateEl) elecRateEl.value = s.elecRate;
+
+        // Update UI Company Names Globally
+        document.querySelectorAll('.company-name-display').forEach(el => el.innerText = s.companyName.toUpperCase());
+    }
+
+    // --- THEME INITIALIZATION ---
+    if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+    }
+
+    function toggleTheme() {
+        document.documentElement.classList.toggle('dark');
+        localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+    }
+
+    function showToast(msg, isError = false) {
+        const toast = document.createElement('div');
+        toast.className = `p-4 rounded-2xl shadow-2xl font-bold text-white transform transition-all duration-300 translate-y-10 opacity-0 flex items-center gap-3 ${isError ? 'bg-rose-600' : 'bg-emerald-600'}`;
+        toast.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'} text-xl"></i> ${msg}`;
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => { toast.classList.remove('translate-y-10', 'opacity-0'); }, 10);
+        setTimeout(() => { toast.classList.add('opacity-0'); setTimeout(() => toast.remove(), 300); }, 4000);
+    }
+
+    function askConfirm(title, msg, onConfirm) {
+        document.getElementById('confirm-title').innerText = title;
+        document.getElementById('confirm-msg').innerText = msg;
+        const modal = document.getElementById('modal-confirm');
+        modal.classList.remove('hidden');
+        document.getElementById('btn-confirm-cancel').onclick = () => { modal.classList.add('hidden'); };
+        document.getElementById('btn-confirm-ok').onclick = () => { modal.classList.add('hidden'); onConfirm(); };
+    }
+
+    function showButtonSuccess(btn, successText, callback) {
+        const originalText = btn.innerHTML; const originalBg = btn.style.backgroundColor;
+        btn.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${successText}`; btn.style.backgroundColor = '#10b981'; btn.style.borderColor = '#10b981'; btn.disabled = true;
+        setTimeout(() => { btn.innerHTML = originalText; btn.style.backgroundColor = originalBg; btn.style.borderColor = ''; btn.disabled = false; if(callback) callback(); }, 1200);
+    }
+
+    async function handleLogin(e) {
+        e.preventDefault(); const u = document.getElementById('login-user').value; const p = document.getElementById('login-pass').value;
+        const loginCard = document.getElementById('login-card');
+
+        try {
+            const res = await fetch(`${API_URL}/auth/login`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({username: u, password: p}) });
+            if(res.ok) {
+                currentUser = await res.json();
+                document.getElementById('login-screen').classList.add('opacity-0', 'pointer-events-none');
+                applyPermissions(); setTimeout(() => { const firstAvailable = document.querySelector('.nav-link[style="display: flex;"]'); if (firstAvailable) firstAvailable.click(); else showSection('dashboard'); }, 300);
+            } else {
+                loginCard.classList.remove('animate-shake');
+                void loginCard.offsetWidth;
+                loginCard.classList.add('animate-shake');
+                showToast("Invalid Credentials.", true);
+            }
+        } catch(e) {
+            loginCard.classList.remove('animate-shake');
+            void loginCard.offsetWidth;
+            loginCard.classList.add('animate-shake');
+            showToast("Server connection failed.", true);
+        }
+    }
+
+    function applyPermissions() {
+        document.getElementById('ui-role-display').innerText = currentUser.role;
+        const perms = currentUser.permissions ? currentUser.permissions.split(',') : [];
+        const isAdmin = currentUser.role === 'ADMIN' || perms.includes('ALL');
+        document.querySelectorAll('.nav-link').forEach(nav => {
+            const tab = nav.getAttribute('data-tab'); if(!tab) return;
+            if (tab === 'users' || tab === 'settings') { nav.style.display = isAdmin ? 'flex' : 'none'; } else { nav.style.display = (isAdmin || perms.includes(tab)) ? 'flex' : 'none'; }
+        });
+        document.querySelectorAll('.nav-divider').forEach(div => {
+            const group = div.getAttribute('data-tab-group').split(',');
+            div.style.display = group.some(tab => isAdmin || perms.includes(tab)) ? 'block' : 'none';
+        });
+    }
+
+    async function showSection(id) {
+        document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
+        const target = document.getElementById('section-' + id); if(target) target.classList.remove('hidden');
+        document.querySelectorAll('.nav-link').forEach(btn => btn.classList.remove('active'));
+        const navBtn = document.getElementById('nav-' + id); if(navBtn) navBtn.classList.add('active');
+
+        await fetchMasterData();
+        if(id === 'dashboard') loadDashboard();
+        if(id === 'coa') loadCoA();
+        if(id === 'journal') loadJVs();
+        if(id === 'tb') loadTB();
+        if(id === 'ledgers') initLedgerView();
+        if(id === 'income') loadIncomeStatement();
+        if(id === 'balance') loadBalanceSheet();
+        if(id === 'settlement') loadSettlements();
+        if(id === 'receipts') loadReceipts();
+        if(id === 'units') loadUnits();
+        if(id === 'payroll') loadPayroll();
+        if(id === 'params') loadParams();
+        if(id === 'settings') loadSettingsUI();
+        if(id === 'users') loadUsers();
+        if(id === 'elec' || id === 'maint') populateBillingDropdowns();
+        if(id === 'outgoings') populateOutgoings();
+    }
+
+    function openModal(id) { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); const form = document.querySelector(`#${id} form`); if(form) { form.reset(); form.querySelectorAll('input[type="hidden"]').forEach(inp => inp.value = ''); } }
+
+    // --- MASTER DATA & DASHBOARD ---
+    async function fetchMasterData() {
+        try {
+            rawElec = await (await fetch(`${API_URL}/ledgers/elec`)).json();
+            rawMaint = await (await fetch(`${API_URL}/ledgers/maint`)).json();
+            rawSal = await (await fetch(`${API_URL}/salaries`)).json();
+            rawExp = await (await fetch(`${API_URL}/expenses`)).json();
+
+            jvCache = await (await fetch(`${API_URL}/jvs`)).json();
+
+            coaCache = await (await fetch(`${API_URL}/coa`)).json();
+            accountsCache = coaCache.filter(a => a.accountType === 'BANK' || a.accountType === 'CASH');
+
+            const accOpts = '<option value="">Select Asset A/C...</option>' + accountsCache.map(a => `<option value="${a.id}">${a.accountCode} - ${a.accountName} (Rs. ${a.currentBalance.toLocaleString()})</option>`).join('');
+            document.querySelectorAll('.account-dropdown').forEach(dd => dd.innerHTML = accOpts);
+            const jvOpts = '<option value="">Select Account...</option>' + coaCache.map(a => `<option value="${a.id}">${a.accountCode} - ${a.accountName}</option>`).join('');
+            document.querySelectorAll('.jv-dropdown').forEach(dd => dd.innerHTML = jvOpts);
+        } catch(e) { console.error("Error fetching master data.", e); }
+    }
+
+    async function loadDashboard() {
+        let arBal = 0, apBal = 0, liquid = 0;
+        let totalRev = 0, totalExp = 0;
+
+        coaCache.forEach(a => {
+            if(a.accountType === 'AR') arBal += parseFloat(a.currentBalance || 0);
+            if(a.accountType === 'AP') apBal += parseFloat(a.currentBalance || 0);
+            if(a.accountType === 'BANK' || a.accountType === 'CASH') liquid += parseFloat(a.currentBalance || 0);
+
+            if(a.accountCategory === 'REVENUE') totalRev += parseFloat(a.currentBalance || 0);
+            if(a.accountCategory === 'EXPENSE') totalExp += parseFloat(a.currentBalance || 0);
+        });
+
+        let buildingNet = liquid + arBal - apBal;
+
+        document.getElementById('dash-ar').innerText = `Rs. ${arBal.toLocaleString()}`;
+        document.getElementById('dash-ap').innerText = `Rs. ${apBal.toLocaleString()}`;
+        document.getElementById('dash-net').innerText = `Rs. ${liquid.toLocaleString()}`;
+        document.getElementById('dash-building-net').innerText = `Rs. ${buildingNet.toLocaleString()}`;
+        document.getElementById('current-date').innerText = new Date().toDateString();
+
+        // --- STRICT CASH FLOW CALCULATION ---
+        let cashIn = 0, cashOut = 0;
+        jvCache.forEach(j => {
+            if(j.voucherType === 'BR') { // Bank Receipt = Cash In
+                j.lines.forEach(l => {
+                    if(l.account && (l.account.accountType === 'BANK' || l.account.accountType === 'CASH')) {
+                        cashIn += parseFloat(l.debit || 0);
+                    }
+                });
+            }
+            if(j.voucherType === 'BP') { // Bank Payment = Cash Out
+                j.lines.forEach(l => {
+                    if(l.account && (l.account.accountType === 'BANK' || l.account.accountType === 'CASH')) {
+                        cashOut += parseFloat(l.credit || 0);
+                    }
+                });
+            }
+        });
+
+        document.getElementById('dash-cash-in').innerText = `Rs. ${cashIn.toLocaleString()}`;
+        document.getElementById('dash-cash-out').innerText = `Rs. ${cashOut.toLocaleString()}`;
+        document.getElementById('dash-cash-net').innerText = `Rs. ${(cashIn - cashOut).toLocaleString()}`;
+
+        document.getElementById('dash-accounts').innerHTML = accountsCache.map(a => `
+                <div class="glass-panel p-6 rounded-2xl border-l-4 border-l-gold-500 shadow-sm"><p class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">${a.accountType}</p><p class="font-black text-slate-900 dark:text-white truncate">${a.accountName}</p><p class="text-xl font-black text-gold-600 dark:text-gold-400 mt-2">Rs. ${a.currentBalance.toLocaleString()}</p></div>
+            `).join('');
+    }
+
+    // --- TRIAL BALANCE ---
+    async function loadTB() {
+        if(coaCache.length === 0) coaCache = await (await fetch(`${API_URL}/coa`)).json();
+        let totalDr = 0; let totalCr = 0;
+        const rows = coaCache.map(a => {
+            let dr = 0; let cr = 0; const bal = a.currentBalance;
+            if (['ASSET', 'EXPENSE'].includes(a.accountCategory)) {
+                if (bal >= 0) dr = bal; else cr = Math.abs(bal);
+            } else {
+                if (bal >= 0) cr = bal; else dr = Math.abs(bal);
+            }
+            totalDr += dr; totalCr += cr;
+            if(dr === 0 && cr === 0) return '';
+            return `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"><td class="py-3 px-6 font-mono text-slate-500 dark:text-slate-400">${a.accountCode}</td><td class="py-3 px-6 font-bold text-slate-900 dark:text-white">${a.accountName}</td><td class="text-right py-3 px-6 border-l border-slate-100 dark:border-slate-700/50 font-black ${dr>0?'text-emerald-600 dark:text-emerald-400':'text-slate-300 dark:text-slate-600'}">${dr > 0 ? dr.toLocaleString() : '-'}</td><td class="text-right py-3 px-6 font-black ${cr>0?'text-rose-600 dark:text-rose-400':'text-slate-300 dark:text-slate-600'}">${cr > 0 ? cr.toLocaleString() : '-'}</td></tr>`;
+        }).join('');
+
+        document.getElementById('tb-body').innerHTML = rows + `<tr class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-600"><td colspan="2" class="py-5 px-6 text-right font-black uppercase tracking-widest text-[10px] text-slate-500 dark:text-slate-400">Total</td><td class="text-right py-5 px-6 font-black border-l border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white">${totalDr.toLocaleString()}</td><td class="text-right py-5 px-6 font-black text-slate-900 dark:text-white">${totalCr.toLocaleString()}</td></tr>`;
+        document.getElementById('tb-date').innerText = "As of " + new Date().toLocaleDateString();
+    }
+
+    // --- CHART OF ACCOUNTS ---
+    async function loadCoA() {
+        document.getElementById('table-coa').innerHTML = coaCache.map(a => {
+            let badgeClass = 'bg-slate-100 text-slate-800 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-600';
+            if(a.accountCategory === 'ASSET') badgeClass = 'bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-400 dark:border-emerald-800';
+            if(a.accountCategory === 'LIABILITY') badgeClass = 'bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-900/30 dark:text-rose-400 dark:border-rose-800';
+            if(a.accountCategory === 'EQUITY') badgeClass = 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800';
+            if(a.accountCategory === 'REVENUE') badgeClass = 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-800';
+            if(a.accountCategory === 'EXPENSE') badgeClass = 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800';
+            return `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"><td class="font-mono text-slate-500 dark:text-slate-400 px-6 py-5">${a.accountCode}</td><td class="font-bold text-slate-900 dark:text-white px-6 py-5">${a.accountName}</td><td class="px-6 py-5"><span class="border ${badgeClass} px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest">${a.accountCategory}</span></td><td class="px-6 py-5"><span class="border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1.5 rounded-lg text-[10px] font-bold tracking-widest">${a.accountType}</span></td><td class="text-right font-black text-slate-900 dark:text-white px-6 py-5">Rs. ${a.currentBalance.toLocaleString()}</td><td class="text-right px-6 py-5 space-x-2"><button onclick="editCoA(${a.id})" class="text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCoA(${a.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-trash"></i></button></td></tr>`;
+        }).join('');
+    }
+    function editCoA(id) { const a = coaCache.find(x => x.id === id); if(!a) return; document.getElementById('coa-id').value = a.id; document.getElementById('coa-name').value = a.accountName; document.getElementById('coa-cat').value = a.accountCategory; document.getElementById('coa-type').value = a.accountType; document.getElementById('coa-bal').value = a.currentBalance; openModal('modal-coa'); }
+    async function handleCoASave(e) {
+        e.preventDefault();
+        const p = { accountName: document.getElementById('coa-name').value, accountCategory: document.getElementById('coa-cat').value, accountType: document.getElementById('coa-type').value, currentBalance: parseFloat(document.getElementById('coa-bal').value) };
+        const idVal = document.getElementById('coa-id').value; if(idVal) p.id = parseInt(idVal);
+        await fetch(`${API_URL}/accounts`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
+        showToast("Account saved."); closeModal('modal-coa'); showSection('coa');
+    }
+    function deleteCoA(id) { askConfirm("Delete Account", "Remove this account from the Chart of Accounts?", async () => { const res = await fetch(`${API_URL}/accounts/${id}`, { method: 'DELETE' }); if(res.ok) { showToast("Account deleted."); showSection('coa'); } else { showToast(await res.text(), true); } }); }
+
+    // --- JOURNAL VOUCHERS ---
+    async function loadJVs() {
+        jvCache = await (await fetch(`${API_URL}/jvs`)).json();
+        document.getElementById('table-jvs').innerHTML = jvCache.map(j => {
+            let dr = 0; j.lines.forEach(l => dr += l.debit);
+            return `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"><td class="font-bold text-gold-600 dark:text-gold-400 px-6 py-5">${j.voucherNo}</td><td class="px-6 py-5 font-medium text-slate-700 dark:text-slate-300">${j.voucherDate}</td><td class="px-6 py-5 text-slate-600 dark:text-slate-400 font-medium">${j.memo}</td><td class="text-right font-black px-6 py-5 text-slate-900 dark:text-white">Rs. ${dr.toLocaleString()}</td><td class="text-center px-6 py-5"><span class="text-[10px] font-black text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700">${j.isLocked ? 'LOCKED' : 'POSTED'}</span></td></tr>`;
+        }).join('');
+    }
+    async function handleJVSubmit(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
+        const jv = { voucherType: 'JV', voucherDate: document.getElementById('jv-date').value, memo: document.getElementById('jv-memo').value, lines: [] };
+        const acc1 = document.getElementById('jv-acc-1').value; const dr1 = parseFloat(document.getElementById('jv-dr-1').value||0); const cr1 = parseFloat(document.getElementById('jv-cr-1').value||0);
+        const acc2 = document.getElementById('jv-acc-2').value; const dr2 = parseFloat(document.getElementById('jv-dr-2').value||0); const cr2 = parseFloat(document.getElementById('jv-cr-2').value||0);
+        if(acc1) jv.lines.push({ account: {id: acc1}, debit: dr1, credit: cr1, lineMemo: 'Manual Entry' });
+        if(acc2) jv.lines.push({ account: {id: acc2}, debit: dr2, credit: cr2, lineMemo: 'Manual Entry' });
+        try {
+            const res = await fetch(`${API_URL}/jvs`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(jv) });
+            if(res.ok) { showButtonSuccess(btn, "JV Posted!", () => { closeModal('modal-jv'); showSection('journal'); }); }
+            else { showToast(await res.text(), true); btn.innerHTML = "Post Voucher to GL"; btn.disabled = false; }
+        } catch(err) { showToast("Network Error", true); btn.innerHTML = "Post Voucher to GL"; btn.disabled = false; }
+    }
+
+    // --- SETTLEMENT CENTER ---
+    function loadSettlements() {
+        const arList = [...rawElec.filter(x => x.status==='UNPAID').map(x=>({type:'ELEC', id:x.id, desc:`Electricity Invoice (U-${x.unit.unitNumber})`, amt:x.total})), ...rawMaint.filter(x => x.status==='UNPAID').map(x=>({type:'MAINT', id:x.id, desc:`Maintenance Invoice (U-${x.unit.unitNumber})`, amt:x.total}))];
+        document.getElementById('table-ar').innerHTML = arList.map(x => {
+            const penaltyBtn = x.type === 'MAINT' ? `<button onclick="openPenaltyModal(${x.id})" class="mr-2 p-2 text-orange-500 hover:bg-orange-50 rounded-lg"><i class="fa-solid fa-circle-exclamation"></i></button>` : '';
+            return `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"><td class="font-bold text-slate-800 dark:text-slate-200 px-6 py-5">${x.desc}</td><td class="text-right font-black text-emerald-600 dark:text-emerald-400 px-6 py-5">Rs. ${x.amt.toLocaleString()} Due</td><td class="text-right px-6 py-5 flex items-center justify-end">${penaltyBtn}<button onclick="prepSettle('${x.type}', ${x.id}, '${x.desc}', ${x.amt})" class="bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-emerald-600 hover:text-white transition-colors shadow-sm">Receive</button></td></tr>`;
+        }).join('') ||
+            '<tr><td colspan="3" class="text-center italic text-slate-400 dark:text-slate-500 py-8">No pending receivables.</td></tr>';
+        const apList = [...rawSal.filter(x => x.status==='UNPAID').map(x=>({type:'SAL', id:x.id, desc:`Salary Accrual (${x.employee.name})`, amt:x.amount})), ...rawExp.filter(x => x.status==='UNPAID').map(x=>({type:'EXP', id:x.id, desc:`Vendor Expense (${x.category.name})`, amt:x.amount}))];
+        document.getElementById('table-ap').innerHTML = apList.map(x => `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"><td class="font-bold text-slate-800 dark:text-slate-200 px-6 py-5">${x.desc}</td><td class="text-right font-black text-rose-600 dark:text-rose-400 px-6 py-5">Rs. ${x.amt.toLocaleString()} Due</td><td class="text-right px-6 py-5"><button onclick="prepSettle('${x.type}', ${x.id}, '${x.desc}', ${x.amt})" class="bg-rose-100 dark:bg-rose-900/30 text-rose-700 dark:text-rose-400 px-4 py-2.5 rounded-xl text-[10px] font-black uppercase hover:bg-rose-600 hover:text-white transition-colors shadow-sm">Pay</button></td></tr>`).join('') || '<tr><td colspan="3" class="text-center italic text-slate-400 dark:text-slate-500 py-8">No pending payables.</td></tr>';
+    }
+
+    function prepSettle(type, id, desc, amt) {
+        document.getElementById('stl-type').value = type; document.getElementById('stl-id').value = id;
+        document.getElementById('stl-desc').innerText = desc; document.getElementById('stl-amt').innerText = `Rs. ${amt.toLocaleString()}`;
+        const payInput = document.getElementById('stl-pay-amt'); payInput.value = amt; payInput.max = amt;
+        openModal('modal-settle');
+    }
+
+    async function handleSettlementSubmit(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]'); btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...'; btn.disabled = true;
+        const type = document.getElementById('stl-type').value; const id = document.getElementById('stl-id').value;
+        const accId = document.getElementById('stl-acc').value; const amountPaid = parseFloat(document.getElementById('stl-pay-amt').value);
+        try {
+            const res = await fetch(`${API_URL}/settle?type=${type}&recordId=${id}&accountId=${accId}&amountPaid=${amountPaid}`, { method: 'POST' });
+            if(res.ok) { showButtonSuccess(btn, "GL Updated!", async () => { closeModal('modal-settle'); await fetchMasterData(); loadSettlements(); }); }
+            else { showToast(await res.text(), true); btn.innerHTML = "Post to GL"; btn.disabled = false; }
+        } catch(err) { showToast("Network error.", true); btn.innerHTML = "Post to GL"; btn.disabled = false; }
+    }
+
+    // --- SUB-LEDGER ACCRUALS ---
+    async function populateBillingDropdowns() {
+        if(unitsCache.length === 0) await loadUnits();
+        const opts = '<option value="">Choose Unit...</option>' + unitsCache.map(u => `<option value="${u.id}">${u.unitNumber} - ${u.ownerName}</option>`).join('');
+        if(document.getElementById('elec-unit')) document.getElementById('elec-unit').innerHTML = opts;
+        if(document.getElementById('maint-unit')) document.getElementById('maint-unit').innerHTML = opts;
+    }
+
+    async function fetchLastReading() { const id = document.getElementById('elec-unit').value; if(!id) return; const res = await fetch(`${API_URL}/bills/last-reading/${id}`); document.getElementById('elec-prev').value = await res.json(); }
+
+    async function handleElecSubmit(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
+        const p = {
+            unit: { id: parseInt(document.getElementById('elec-unit').value) },
+            prevReading: parseInt(document.getElementById('elec-prev').value) || 0,
+            currReading: parseInt(document.getElementById('elec-curr').value),
+            unitPrice: parseFloat(document.getElementById('elec-rate').value) || 0,
+            fixedCharges: parseFloat(document.getElementById('elec-fixed').value) || 0,
+            penalty: parseFloat(document.getElementById('elec-penalty').value) || 0,
+            month: document.getElementById('elec-month').value
+        };
+        try {
+            const res = await fetch(`${API_URL}/bills/electricity`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
+            if(res.ok) { showButtonSuccess(btn, "Invoice Generated!", () => { document.getElementById('form-elec').reset(); applySettingsToUI(); showSection('settlement'); }); }
+            else { showToast(await res.text(), true); btn.innerHTML = "Generate Invoice"; btn.disabled = false; }
+        } catch(err) { showToast("Network Error.", true); btn.innerHTML = "Generate Invoice"; btn.disabled = false; }
+    }
+
+    async function handleBulkMaint() {
+        const amt = document.getElementById('maint-amt').value;
+        const month = document.getElementById('maint-month').value;
+        if(!amt || !month) return showToast("Enter amount and month first", true);
+
+        askConfirm("Bulk Billing", `Generate Rs. ${amt} maintenance bills for ALL properties for ${month}?`, async () => {
+            try {
+                const res = await fetch(`${API_URL}/bills/maintenance/bulk?amount=${amt}&month=${month}`, { method: 'POST' });
+                if(res.ok) {
+                    showToast("Bulk Invoices Generated!");
+                    await fetchMasterData();
+                    showSection('receipts');
+                } else {
+                    const errText = await res.text();
+                    showToast("Error: " + errText, true);
+                }
+            } catch(e) { showToast("Server connection error", true); }
+        });
+    }
+
+    async function handleMaintSubmit(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
+        const p = { unit: { id: parseInt(document.getElementById('maint-unit').value) }, amount: parseFloat(document.getElementById('maint-amt').value), penalty: parseFloat(document.getElementById('maint-penalty').value) || 0, month: document.getElementById('maint-month').value };
+        try {
+            const res = await fetch(`${API_URL}/bills/maintenance`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
+            if(res.ok) { showButtonSuccess(btn, "Invoice Generated!", () => { document.getElementById('form-maint').reset(); applySettingsToUI(); showSection('settlement'); }); }
+            else { showToast(await res.text(), true); btn.innerHTML = "Generate Invoice"; btn.disabled = false; }
+        } catch(err) { showToast("Network Error.", true); btn.innerHTML = "Generate Invoice"; btn.disabled = false; }
+    }
+
+    async function populateOutgoings() { if(catsCache.length === 0) catsCache = await (await fetch(`${API_URL}/categories`)).json(); document.getElementById('out-cat').innerHTML = '<option value="">Select Category...</option>' + catsCache.map(c => `<option value="${c.id}">${c.name}</option>`).join(''); }
+
+    async function handleOutgoingSave(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
+        const p = { category: { id: parseInt(document.getElementById('out-cat').value) }, amount: parseFloat(document.getElementById('out-amt').value), date: document.getElementById('out-date').value, description: document.getElementById('out-desc').value };
+        try {
+            const res = await fetch(`${API_URL}/expenses`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
+            if(res.ok) { showButtonSuccess(btn, "A/P Created!", () => { document.getElementById('form-outgoings').reset(); showSection('settlement'); }); }
+            else { showToast(await res.text(), true); btn.innerHTML = "Generate A/P Voucher"; btn.disabled = false; }
+        } catch(err) { showToast("Network Error.", true); btn.innerHTML = "Generate A/P Voucher"; btn.disabled = false; }
+    }
+
+    // --- STAFF & BATCH PROCESSING ---
+    async function loadPayroll() {
+        if(staffCache.length === 0) staffCache = await (await fetch(`${API_URL}/employees`)).json();
+        document.getElementById('table-payroll').innerHTML = staffCache.map(e => `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"><td class="px-8 py-5 font-black text-slate-800 dark:text-slate-200 uppercase">${e.name}</td><td class="px-8 py-5 font-mono text-slate-500 dark:text-slate-400 text-xs">${e.cnic || '-'}</td><td class="px-8 py-5 text-right font-bold text-slate-600 dark:text-slate-300">Rs. ${e.fixedSalary.toLocaleString()}</td><td class="px-8 py-5 text-center"><button onclick="document.getElementById('pay-emp-id').value = ${e.id}; document.getElementById('pay-amt').value = ${e.fixedSalary}; openModal('modal-pay-single');" class="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-gold-500 hover:text-white dark:hover:bg-gold-600 dark:hover:text-white px-4 py-2.5 rounded-xl font-black text-[10px] uppercase transition-colors shadow-sm border border-slate-200 dark:border-slate-700">Log A/P</button></td></tr>`).join('');
+        const totalPayroll = staffCache.reduce((sum, emp) => sum + emp.fixedSalary, 0);
+        document.getElementById('tfoot-payroll').innerHTML = `<tr><td colspan="2" class="px-8 py-6 text-right text-slate-500 dark:text-slate-400 uppercase tracking-widest text-xs">Total Monthly Payroll:</td><td class="px-8 py-6 text-right text-gold-600 dark:text-gold-400 text-lg font-black">Rs. ${totalPayroll.toLocaleString()}</td><td></td></tr>`;
+    }
+
+    function prepPay(id, name, sal) { document.getElementById('pay-emp-id').value = id; document.getElementById('pay-emp-name').innerText = name; document.getElementById('pay-amt').value = sal; openModal('modal-pay-single'); }
+
+    async function handleSinglePaySubmit(e) {
+        e.preventDefault();
+        const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...';
+        const p = { employee: { id: parseInt(document.getElementById('pay-emp-id').value) }, salaryMonth: document.getElementById('pay-month').value, amount: parseFloat(document.getElementById('pay-amt').value), remarks: document.getElementById('pay-rem').value };
+        try {
+            const res = await fetch(`${API_URL}/salaries`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) });
+            if(res.ok) { showButtonSuccess(btn, "A/P Created!", () => { closeModal('modal-pay-single'); showSection('settlement'); }); }
+            else { showToast(await res.text(), true); btn.innerHTML = "Create A/P"; btn.disabled = false; }
+        } catch(err) { showToast("Network Error.", true); btn.innerHTML = "Create A/P"; btn.disabled = false; }
+    }
+
+    async function handleBulkAccrualSubmit(e) {
+        e.preventDefault();
+        const m = document.getElementById('bulk-month').value;
+        const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = 'Processing...';
+        try {
+            const res = await fetch(`${API_URL}/payroll/pay-all?month=${m}`, { method: 'POST' });
+            if(res.ok) { showButtonSuccess(btn, "Batch Generated!", async () => { closeModal('modal-bulk-accrual'); await fetchMasterData(); showToast("Go to Settlement Center to pay."); }); }
+            else { showToast(await res.text(), true); btn.innerHTML = "Generate A/P"; btn.disabled = false; }
+        } catch(err) { showToast("Error connecting.", true); btn.innerHTML = "Generate A/P"; btn.disabled = false; }
+    }
+
+    function openBatchSettleModal() {
+        const pendingSalaries = rawSal.filter(s => s.status === 'UNPAID'); const pendingTotal = pendingSalaries.reduce((sum, s) => sum + (s.amount || 0), 0);
+        document.getElementById('batch-pay-total-display').innerText = `Rs. ${pendingTotal.toLocaleString()}`;
+        document.getElementById('batch-pay-bank').innerHTML = accountsCache.map(a => `<option value="${a.id}">${a.accountCode} - ${a.accountName} (Rs. ${a.currentBalance.toLocaleString()})</option>`).join('');
+        openModal('modal-pay-batch');
+    }
+
+    async function handleBatchSettleSubmit(e) {
+        e.preventDefault();
+        const accId = document.getElementById('batch-pay-bank').value; if (!accId) return showToast("Select Asset A/C", true);
+        const targetMonth = document.getElementById('batch-pay-month').value.toLowerCase().trim();
+        const pendingSalaries = rawSal.filter(s => s.status === 'UNPAID' && s.salaryMonth.toLowerCase().trim() === targetMonth);
+        if(pendingSalaries.length === 0) return showToast("No UNPAID salaries found for this month.", true);
+
+        const btn = e.target.querySelector('button[type="submit"]'); btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+        try {
+            const promises = pendingSalaries.map(s => fetch(`${API_URL}/settle?type=SAL&recordId=${s.id}&accountId=${accId}&amountPaid=${s.amount}`, { method: 'POST' }));
+            await Promise.all(promises);
+            showButtonSuccess(btn, "Batch Cleared!", () => { closeModal('modal-pay-batch'); showSection('dashboard'); });
+        } catch (err) { showToast("Error processing batch.", true); btn.innerHTML = "Process All"; btn.disabled = false; }
+    }
+
+    // --- CRUD FOR PARAMS, USERS & UNITS ---
+    async function loadUsers() {
+        const res = await fetch(`${API_URL}/users`); usersCache = await res.json();
+        document.getElementById('table-users').innerHTML = usersCache.map(u => `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"><td class="px-6 py-5 font-black text-slate-900 dark:text-white">${u.username}</td><td class="px-6 py-5 font-bold text-slate-700 dark:text-slate-300">${u.role}</td><td class="px-6 py-5 text-xs font-mono text-gold-500 max-w-xs truncate" title="${u.permissions}">${u.permissions}</td><td class="px-6 py-5 text-right">${u.username !== 'saahil' ? `<button onclick="editUser(${u.id})" class="text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-pen"></i></button><button onclick="deleteUser(${u.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-trash"></i></button>` : '<span class="text-xs text-slate-400 dark:text-slate-500 font-black tracking-widest uppercase">Master</span>'}</td></tr>`).join('');
+    }
+
+    function togglePermissionsView() {
+        const role = document.getElementById('u-role').value;
+        document.getElementById('u-permissions-container').style.display = (role === 'ADMIN') ? 'none' : 'block';
+    }
+
+    function openNewUserModal() {
+        document.getElementById('form-user').reset();
+        document.getElementById('u-id').value = '';
+        document.getElementById('u-role').value = 'STAFF';
+        togglePermissionsView();
+        document.querySelectorAll('.perm-chk').forEach(cb => cb.checked = false);
+        openModal('modal-user');
+    }
+
+    function editUser(id) {
+        const u = usersCache.find(x => x.id === id); if(!u) return;
+        document.getElementById('u-id').value = u.id;
+        document.getElementById('u-username').value = u.username;
+        document.getElementById('u-password').value = u.password;
+        document.getElementById('u-role').value = u.role;
+
+        togglePermissionsView();
+        document.querySelectorAll('.perm-chk').forEach(cb => cb.checked = false);
+
+        if(u.permissions && u.permissions !== 'ALL') {
+            const perms = u.permissions.split(',');
+            document.querySelectorAll('.perm-chk').forEach(cb => {
+                const vals = cb.value.split(',');
+                if(vals.some(v => perms.includes(v))) cb.checked = true;
+            });
+        }
+        openModal('modal-user');
+    }
+
+    async function handleUserSave(e) {
+        e.preventDefault();
+        const role = document.getElementById('u-role').value;
+
+        let permsStr = 'ALL';
+        if(role === 'STAFF') {
+            const selected = [];
+            document.querySelectorAll('.perm-chk:checked').forEach(cb => selected.push(cb.value));
+            permsStr = selected.join(',');
+        }
+
+        const p = { username: document.getElementById('u-username').value, password: document.getElementById('u-password').value, role: role, permissions: permsStr };
+        const idVal = document.getElementById('u-id').value; if(idVal) p.id = parseInt(idVal);
+        const btn = e.target.querySelector('button[type="submit"]'); const ogText = btn.innerText; btn.innerText = "Saving..."; btn.disabled = true;
+        try { await fetch(`${API_URL}/users`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("User profile saved."); closeModal('modal-user'); loadUsers(); } finally { btn.innerText = ogText; btn.disabled = false; }
+    }
+
+    function deleteUser(id) { askConfirm("Delete Profile", "Remove this staff account permanently?", async () => { await fetch(`${API_URL}/users/${id}`, { method: 'DELETE' }); showToast("Profile removed."); loadUsers(); }); }
+
+    async function loadUnits() {
+        const kw = document.getElementById('unit-search').value; const res = await fetch(`${API_URL}/units${kw ? '?keyword=' + kw : ''}`); unitsCache = await res.json();
+        document.getElementById('table-units').innerHTML = unitsCache.map(u => `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"><td class="px-8 py-5 font-black text-slate-900 dark:text-white text-base">${u.unitNumber}</td><td class="px-8 py-5 font-bold text-slate-700 dark:text-slate-300">${u.ownerName}</td><td class="px-8 py-5 font-mono text-slate-500 dark:text-slate-400 text-xs">${u.cnic || '-'}</td><td class="px-8 py-5 text-right space-x-1"><button onclick="editUnit(${u.id})" class="text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-pen"></i></button><button onclick="deleteUnit(${u.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
+    }
+    function editUnit(id) { const u = unitsCache.find(x => x.id === id); if(!u) return; document.getElementById('in-unit-id').value = u.id; document.getElementById('u-num').value = u.unitNumber; document.getElementById('u-owner').value = u.ownerName; document.getElementById('u-cnic').value = u.cnic; openModal('modal-unit'); }
+    async function handleUnitSave(e) { e.preventDefault(); const p = { unitNumber: document.getElementById('u-num').value, ownerName: document.getElementById('u-owner').value, cnic: document.getElementById('u-cnic').value }; const idVal = document.getElementById('in-unit-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/units`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Unit saved."); closeModal('modal-unit'); loadUnits(); }
+    function deleteUnit(id) { askConfirm("Delete Unit", "Delete this property?", async () => { const res = await fetch(`${API_URL}/units/${id}`, { method: 'DELETE' }); if(res.ok) { showToast("Unit removed."); loadUnits(); } else { showToast(await res.text(), true); } }); }
+
+    async function loadParams() {
+        const emps = await (await fetch(`${API_URL}/employees`)).json(); staffCache = emps;
+        document.getElementById('table-params-emp').innerHTML = emps.map(e => `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30"><td class="py-4 px-6 font-bold uppercase text-slate-700 dark:text-slate-300">${e.name}</td><td class="py-4 px-6 text-right"><button onclick="editEmp(${e.id})" class="text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-500/10 p-2 rounded-xl transition-colors mx-1"><i class="fa-solid fa-pen"></i></button><button onclick="deleteEmp(${e.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
+        const cats = await (await fetch(`${API_URL}/categories`)).json(); catsCache = cats;
+        document.getElementById('table-params-cat').innerHTML = cats.map(c => `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30"><td class="py-4 px-6 font-bold uppercase text-slate-700 dark:text-slate-300">${c.name}</td><td class="py-4 px-6 text-right"><button onclick="editCat(${c.id})" class="text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-500/10 p-2 rounded-xl transition-colors mx-1"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCat(${c.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
+    }
+    function editEmp(id) { const e = staffCache.find(x => x.id === id); if(!e) return; document.getElementById('emp-id').value = e.id; document.getElementById('emp-name').value = e.name; document.getElementById('emp-sal').value = e.fixedSalary; openModal('modal-emp'); }
+    async function handleEmpSave(e) { e.preventDefault(); const p = { name: document.getElementById('emp-name').value, fixedSalary: parseFloat(document.getElementById('emp-sal').value) }; const idVal = document.getElementById('emp-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/employees`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Staff profile saved."); closeModal('modal-emp'); loadParams(); }
+    function deleteEmp(id) { askConfirm("Delete Staff", "Remove staff member?", async () => { const res = await fetch(`${API_URL}/employees/${id}`, { method: 'DELETE' }); if(res.ok) { showToast("Staff removed."); loadParams(); } else { showToast(await res.text(), true); } }); }
+
+    function editCat(id) { const c = catsCache.find(x => x.id === id); if(!c) return; document.getElementById('cat-id').value = c.id; document.getElementById('cat-name').value = c.name; openModal('modal-cat'); }
+    async function handleCatSave(e) { e.preventDefault(); const p = { name: document.getElementById('cat-name').value }; const idVal = document.getElementById('cat-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/categories`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Category saved."); closeModal('modal-cat'); loadParams(); }
+    function deleteCat(id) { askConfirm("Delete Category", "Remove expense category?", async () => { const res = await fetch(`${API_URL}/categories/${id}`, { method: 'DELETE' }); if(res.ok) { showToast("Category removed."); loadParams(); } else { showToast(await res.text(), true); } }); }
+
+    // --- INVOICES & RECEIPTS HUB ---
+    let allReceiptsCache = [];
+    let currentReceiptFilter = 'ALL';
+
+    function parseSafeDateLocal(d) {
+        if (!d) return new Date();
+        if (Array.isArray(d)) return new Date(d[0], d[1] - 1, d[2]);
+        return new Date(d);
+    }
+
+    function setReceiptFilter(type) {
+        currentReceiptFilter = type;
+        const types = ['ALL', 'ELEC', 'MAINT'];
+        types.forEach(t => {
+            const btn = document.getElementById('btn-filter-' + t);
+            if(btn) {
+                if(t === type) {
+                    btn.className = "px-5 py-2.5 rounded-lg text-xs font-black tracking-widest uppercase bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm transition-all whitespace-nowrap";
+                } else {
+                    btn.className = "px-5 py-2.5 rounded-lg text-xs font-black tracking-widest uppercase text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all whitespace-nowrap";
+                }
+            }
+        });
+        filterReceipts();
+    }
+
+    function loadReceipts() {
+        allReceiptsCache = [
+            ...rawElec.map(x => ({ type: 'ELEC', title: 'Electricity', date: x.createdAt, month: x.month, unit: x.unit?.unitNumber || '?', owner: x.unit?.ownerName || '?', amt: x.total || 0, status: x.status, id: x.id })),
+            ...rawMaint.map(x => ({ type: 'MAINT', title: 'Maintenance', date: x.createdAt, month: x.month, unit: x.unit?.unitNumber || '?', owner: x.unit?.ownerName || '?', amt: x.total || 0, status: x.status, id: x.id }))
+        ];
+        allReceiptsCache.sort((a, b) => parseSafeDateLocal(b.date) - parseSafeDateLocal(a.date));
+        filterReceipts();
+    }
+
+    function filterReceipts() {
+        const kw = (document.getElementById('receipt-search').value || '').toLowerCase();
+        let filtered = allReceiptsCache.filter(b => {
+            const matchKw = String(b.unit || '').toLowerCase().includes(kw) || String(b.owner || '').toLowerCase().includes(kw);
+            const matchType = currentReceiptFilter === 'ALL' || b.type === currentReceiptFilter;
+            return matchKw && matchType;
+        });
+
+        document.getElementById('table-receipts').innerHTML = filtered.map(b => {
+            let statusBadge = b.status === 'PAID'
+                ? '<span class="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 px-3 py-1 rounded-lg text-[10px] font-black tracking-widest uppercase border border-emerald-200 dark:border-emerald-800">PAID</span>'
+                : '<span class="bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400 px-3 py-1 rounded-lg text-[10px] font-black tracking-widest uppercase border border-rose-200 dark:border-rose-800">UNPAID</span>';
+
+            return `
+            <tr class="hover:bg-slate-50/50 dark:bg-slate-800/30 transition-colors">
+                <td class="px-6 py-4 font-bold text-slate-900 dark:text-white">${b.unit} <span class="text-xs font-medium text-slate-500 block">${b.owner}</span></td>
+                <td class="px-6 py-4 font-bold text-slate-700 dark:text-slate-300">${b.title} <span class="text-xs text-slate-500 block">${b.month || '-'}</span></td>
+                <td class="px-6 py-4 font-mono text-xs text-slate-500">${parseSafeDateLocal(b.date).toLocaleDateString()}</td>
+                <td class="px-6 py-4 text-center">${statusBadge}</td>
+                <td class="px-6 py-4 text-right font-black text-slate-900 dark:text-white">Rs. ${b.amt.toLocaleString()}</td>
+                <td class="px-6 py-4 text-right">
+                    <button onclick="printReceipt('${b.type}', ${b.id})" class="text-sky-600 hover:bg-sky-50 dark:text-sky-400 dark:hover:bg-sky-900/30 px-4 py-2 rounded-xl text-[10px] font-black uppercase transition-colors border border-sky-200 dark:border-sky-800"><i class="fa-solid fa-print mr-1"></i> Print</button>
+                </td>
+            </tr>
+            `;
+        }).join('') || '<tr><td colspan="6" class="text-center py-8 text-slate-500 italic">No matching bills found.</td></tr>';
+    }
+
+    function printReceipt(type, id) {
+        let bill = null;
+        let title = "";
+        let detailsHtml = "";
+
+        const company = getSettings().companyName || "Takmeel Builders & Developers";
+        const printDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+        if(type === 'ELEC') {
+            bill = rawElec.find(b => b.id === id);
+            if(!bill) return showToast("Bill not found", true);
+
+            title = "Electricity Invoice";
+            let rate = bill.unitPrice || getSettings().elecRate || 35.0;
+            let elecCost = (bill.consumed || 0) * rate;
+
+            // Cleaned up table rows to inherit the master print-table borders
+            detailsHtml = `
+                <tr><td class="text-left">Meter Reading (Previous)</td><td class="text-right">${bill.prevReading || 0}</td></tr>
+                <tr><td class="text-left">Meter Reading (Current)</td><td class="text-right">${bill.currReading || 0}</td></tr>
+                <tr><td class="text-left">Units Consumed</td><td class="text-right">${bill.consumed || 0}</td></tr>
+                <tr><td class="text-left">Rate per Unit</td><td class="text-right">Rs. ${rate.toFixed(2)}</td></tr>
+                <tr><td class="text-left" style="font-weight:bold;">Electricity Charges</td><td class="text-right" style="font-weight:bold;">Rs. ${elecCost.toLocaleString()}</td></tr>
+                <tr><td class="text-left">Fixed Charges</td><td class="text-right">Rs. ${(bill.fixedCharges || 0).toLocaleString()}</td></tr>
+                <tr><td class="text-left">Late Payment Penalty</td><td class="text-right">Rs. ${(bill.penalty || 0).toLocaleString()}</td></tr>
+            `;
+        } else {
+            bill = rawMaint.find(b => b.id === id);
+            if(!bill) return showToast("Bill not found", true);
+
+            title = "Maintenance Invoice";
+            detailsHtml = `
+                <tr><td class="text-left" style="font-weight:bold;">Monthly Maintenance Fee</td><td class="text-right" style="font-weight:bold;">Rs. ${(bill.amount || 0).toLocaleString()}</td></tr>
+                <tr><td class="text-left">Late Payment Penalty</td><td class="text-right">Rs. ${(bill.penalty || 0).toLocaleString()}</td></tr>
+            `;
+        }
+
+        let isPaid = bill.status === 'PAID';
+        let watermark = isPaid ?
+            `<div style="position:absolute; top:35%; left:25%; font-size:120px; color:rgba(16, 185, 129, 0.1); transform:rotate(-30deg); font-weight:900; z-index:0; border: 8px solid rgba(16, 185, 129, 0.1); padding: 20px; text-align:center; border-radius: 20px;">PAID</div>` :
+            `<div style="position:absolute; top:35%; left:15%; font-size:120px; color:rgba(225, 29, 72, 0.08); transform:rotate(-30deg); font-weight:900; z-index:0; border: 8px solid rgba(225, 29, 72, 0.08); padding: 20px; text-align:center; border-radius: 20px;">UNPAID</div>`;
+
+        let documentTitle = isPaid ? "OFFICIAL RECEIPT" : "TAX INVOICE";
+
+        let safeUnit = bill.unit ? bill.unit.unitNumber : '?';
+        let safeOwner = bill.unit ? bill.unit.ownerName : '?';
+
+        const parseDate = (d) => {
+            if (!d) return new Date();
+            if (Array.isArray(d)) return new Date(d[0], d[1] - 1, d[2]);
+            return new Date(d);
+        };
+        let safeDate = parseDate(bill.createdAt).toLocaleDateString('en-US');
+
+        // Fully integrated into the standard document theme
+        document.getElementById('print-container').innerHTML = `
+            <div class="print-wrapper" style="position:relative; background: white;">
+
+                <div class="print-header-box">
+                    <h1 style="text-transform: uppercase;">${company}</h1>
+                    <h2 style="font-size: 20px; font-weight: 600; margin: 10px 0 4px 0;">${documentTitle}</h2>
+                    <p style="font-size: 16px; font-weight: 600; margin: 0;">${title}</p>
+                    <p style="font-size: 12px; font-style: italic; margin: 6px 0 0 0; color: #B8904D;">(Amounts in PKR)</p>
+                </div>
+
+                <div style="padding: 30px; position:relative; z-index: 10;">
+                    ${watermark}
+                    <div style="display:flex; justify-content: space-between; margin-bottom: 30px;">
+                        <div>
+                            <p style="margin: 0 0 5px 0; font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold;">Billed To:</p>
+                            <h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 900; color: #1e293b;">${safeOwner}</h3>
+                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Unit: ${safeUnit}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="margin: 0 0 5px 0; font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold;">Document Details:</p>
+                            <p style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #1e293b;">No: ${type}-${bill.id}</p>
+                            <p style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #1e293b;">Billing Month: ${bill.month || 'N/A'}</p>
+                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Issue Date: ${safeDate}</p>
+                        </div>
+                    </div>
+
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left; width: 70%; border-right: 1px solid #cbd5e1;">DESCRIPTION</th>
+                                <th style="text-align: right; width: 30%;">AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${detailsHtml}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="text-right" style="font-weight: 900; text-transform: uppercase; border-right: 1px solid #cbd5e1;">Total Amount Payable</td>
+                                <td class="text-right" style="font-weight: 900; font-size: 16px; color: #1e293b;">Rs. ${(bill.total || 0).toLocaleString()}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+
+                    <div style="margin-top: 60px; display:flex; justify-content:space-between;">
+                        <div style="width: 40%; text-align:center;">
+                            <div style="border-bottom: 1px solid #1e293b; height: 40px; margin-bottom: 10px;"></div>
+                            <p style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Authorized Signature</p>
+                        </div>
+                        <div style="width: 40%; text-align:center; display: flex; flex-direction: column; justify-content: flex-end;">
+                            <p style="font-size: 11px; font-style: italic; color: #64748b; margin: 0;">Generated automatically by Takmeel ERP</p>
+                            <p style="font-size: 11px; font-style: italic; color: #64748b; margin: 0;">Printed on ${printDate}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        setTimeout(() => { window.print(); }, 100);
+    }
+
+    // --- NEW: FINANCIAL REPORTS LOGIC (RESTORED) ---
+    async function loadIncomeStatement() {
+        if(coaCache.length === 0) coaCache = await (await fetch(`${API_URL}/coa`)).json();
+
+        let revHtml = '', expHtml = '';
+        let totalRev = 0, totalExp = 0;
+
+        coaCache.forEach(a => {
+            let bal = parseFloat(a.currentBalance || 0);
+            if(a.accountCategory === 'REVENUE' && bal !== 0) {
+                revHtml += `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"><td class="py-3 px-6 font-mono text-slate-500 dark:text-slate-400">${a.accountCode}</td><td class="py-3 px-6 font-bold text-slate-900 dark:text-white">${a.accountName}</td><td class="text-right py-3 px-6 font-black text-slate-900 dark:text-white">${bal.toLocaleString()}</td></tr>`;
+                totalRev += bal;
+            } else if(a.accountCategory === 'EXPENSE' && bal !== 0) {
+                expHtml += `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"><td class="py-3 px-6 font-mono text-slate-500 dark:text-slate-400">${a.accountCode}</td><td class="py-3 px-6 font-bold text-slate-900 dark:text-white">${a.accountName}</td><td class="text-right py-3 px-6 font-black text-slate-900 dark:text-white">${bal.toLocaleString()}</td></tr>`;
+                totalExp += bal;
+            }
+        });
+
+        document.getElementById('is-rev-body').innerHTML = revHtml || '<tr><td colspan="3" class="py-6 px-6 text-center text-slate-400 italic">No revenue recorded</td></tr>';
+        document.getElementById('is-exp-body').innerHTML = expHtml || '<tr><td colspan="3" class="py-6 px-6 text-center text-slate-400 italic">No operating expenses recorded</td></tr>';
+
+        let netIncome = totalRev - totalExp;
+
+        document.getElementById('is-total-rev').innerText = totalRev.toLocaleString();
+        document.getElementById('is-total-exp').innerText = totalExp.toLocaleString();
+        document.getElementById('is-net-income').innerText = `Rs. ${netIncome.toLocaleString()}`;
+
+        const netIncEl = document.getElementById('is-net-income');
+        if(netIncome > 0) { netIncEl.className = "text-4xl font-black text-emerald-600 dark:text-emerald-400"; }
+        else if(netIncome < 0) { netIncEl.className = "text-4xl font-black text-rose-600 dark:text-rose-400"; }
+        else { netIncEl.className = "text-4xl font-black text-slate-900 dark:text-white"; }
+
+        const dateStr = "For the period ending " + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('is-date').innerText = dateStr;
+    }
+
+    async function loadBalanceSheet() {
+        if(coaCache.length === 0) coaCache = await (await fetch(`${API_URL}/coa`)).json();
+
+        let astHtml = '', liabHtml = '', eqHtml = '';
+        let totalAst = 0, totalLiab = 0, totalEq = 0;
+        let totalRev = 0, totalExp = 0;
+
+        coaCache.forEach(a => {
+            let bal = parseFloat(a.currentBalance || 0);
+            if(a.accountCategory === 'ASSET' && bal !== 0) {
+                astHtml += `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"><td class="py-3 px-6 font-mono text-slate-500 dark:text-slate-400">${a.accountCode}</td><td class="py-3 px-6 font-bold text-slate-900 dark:text-white">${a.accountName}</td><td class="text-right py-3 px-6 font-black text-slate-900 dark:text-white">${bal.toLocaleString()}</td></tr>`;
+                totalAst += bal;
+            } else if(a.accountCategory === 'LIABILITY' && bal !== 0) {
+                liabHtml += `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"><td class="py-3 px-6 font-mono text-slate-500 dark:text-slate-400">${a.accountCode}</td><td class="py-3 px-6 font-bold text-slate-900 dark:text-white">${a.accountName}</td><td class="text-right py-3 px-6 font-black text-slate-900 dark:text-white">${bal.toLocaleString()}</td></tr>`;
+                totalLiab += bal;
+            } else if(a.accountCategory === 'EQUITY' && bal !== 0) {
+                eqHtml += `<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors"><td class="py-3 px-6 font-mono text-slate-500 dark:text-slate-400">${a.accountCode}</td><td class="py-3 px-6 font-bold text-slate-900 dark:text-white">${a.accountName}</td><td class="text-right py-3 px-6 font-black text-slate-900 dark:text-white">${bal.toLocaleString()}</td></tr>`;
+                totalEq += bal;
+            } else if(a.accountCategory === 'REVENUE') {
+                totalRev += bal;
+            } else if(a.accountCategory === 'EXPENSE') {
+                totalExp += bal;
+            }
+        });
+
+        // Dynamic Retained Earnings (Net Income Roll-up)
+        let netIncome = totalRev - totalExp;
+        if(netIncome !== 0) {
+            eqHtml += `<tr class="hover:bg-gold-50/50 dark:hover:bg-gold-900/20 transition-colors"><td class="py-3 px-6 font-mono text-gold-500">---</td><td class="py-3 px-6 font-bold text-gold-600 dark:text-gold-400"><i class="fa-solid fa-turn-up mr-2 text-[10px]"></i>Current Period Net Income</td><td class="text-right py-3 px-6 font-black text-gold-600 dark:text-gold-400">${netIncome.toLocaleString()}</td></tr>`;
+            totalEq += netIncome;
+        }
+
+        document.getElementById('bs-ast-body').innerHTML = astHtml || '<tr><td colspan="3" class="py-6 px-6 text-center text-slate-400 italic">No assets recorded</td></tr>';
+        document.getElementById('bs-liab-body').innerHTML = liabHtml || '<tr><td colspan="3" class="py-6 px-6 text-center text-slate-400 italic">No liabilities recorded</td></tr>';
+        document.getElementById('bs-eq-body').innerHTML = eqHtml || '<tr><td colspan="3" class="py-6 px-6 text-center text-slate-400 italic">No equity recorded</td></tr>';
+
+        document.getElementById('bs-total-ast').innerText = `Rs. ${totalAst.toLocaleString()}`;
+        document.getElementById('bs-total-liab').innerText = totalLiab.toLocaleString();
+        document.getElementById('bs-total-eq').innerText = totalEq.toLocaleString();
+
+        let totalLiabEq = totalLiab + totalEq;
+        document.getElementById('bs-total-liab-eq').innerText = `Rs. ${totalLiabEq.toLocaleString()}`;
+
+        const liabEqEl = document.getElementById('bs-total-liab-eq');
+        if(Math.abs(totalAst - totalLiabEq) > 0.01) {
+            liabEqEl.className = "text-2xl font-black text-rose-600 dark:text-rose-400";
+            liabEqEl.innerText += " (OUT OF BALANCE)";
+        } else {
+            liabEqEl.className = "text-2xl font-black text-emerald-600 dark:text-emerald-400";
+        }
+
+        document.getElementById('bs-date').innerText = "As of " + new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    }
+
+    // --- TAKMEEL PROFESSIONAL PRINT ENGINE ---
+    function printIncomeStatement() {
+        const dateStr = document.getElementById('is-date').innerText;
+        const company = getSettings().companyName;
+        document.getElementById('print-container').innerHTML = `
+                <div class="print-wrapper">
+                    <div class="print-header-box">
+                        <h1 style="text-transform: uppercase;">${company}</h1>
+                        <h2 style="font-size: 20px; font-weight: 600; margin: 10px 0 4px 0;">Income Statement</h2>
+                        <p style="font-size: 16px; font-weight: 600; margin: 0;">${dateStr}</p>
+                        <p style="font-size: 12px; font-style: italic; margin: 6px 0 0 0; color: #B8904D;">(Amounts in PKR)</p>
+                    </div>
+
+                    <h3 style="margin: 30px 20px 10px 20px; font-size: 14px; text-transform: uppercase; color: #1e293b;">Revenue</h3>
+                    <table class="print-table" style="margin-top: 0; border: none;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%; border-right: 1px solid #cbd5e1;">CODE</th>
+                                <th style="text-align: left; width: 55%; border-right: 1px solid #cbd5e1;">ACCOUNT TITLE</th>
+                                <th style="text-align: right; width: 30%;">AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody>${document.getElementById('is-rev-body').innerHTML}</tbody>
+                        <tfoot style="border-top: 2px solid #1e293b;"><tr><td colspan="2" style="text-align: left; text-transform: uppercase; background: none !important;">Total Revenue</td><td style="text-align: right; background: none !important;">${document.getElementById('is-total-rev').innerText}</td></tr></tfoot>
+                    </table>
+
+                    <h3 style="margin: 30px 20px 10px 20px; font-size: 14px; text-transform: uppercase; color: #1e293b;">Operating Expenses</h3>
+                    <table class="print-table" style="margin-top: 0; border: none;">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%; border-right: 1px solid #cbd5e1;">CODE</th>
+                                <th style="text-align: left; width: 55%; border-right: 1px solid #cbd5e1;">ACCOUNT TITLE</th>
+                                <th style="text-align: right; width: 30%;">AMOUNT</th>
+                            </tr>
+                        </thead>
+                        <tbody>${document.getElementById('is-exp-body').innerHTML}</tbody>
+                        <tfoot style="border-top: 2px solid #1e293b;"><tr><td colspan="2" style="text-align: left; text-transform: uppercase; background: none !important;">Total Expenses</td><td style="text-align: right; background: none !important;">${document.getElementById('is-total-exp').innerText}</td></tr></tfoot>
+                    </table>
+
+                    <div style="margin-top: 30px; border-top: 4px double #1e293b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc;">
+                        <h3 style="margin: 0; text-transform: uppercase; font-size: 16px; color: #1e293b;">Net Income (Profit/Loss)</h3>
+                        <h3 style="margin: 0; font-size: 20px; color: #1e293b;">${document.getElementById('is-net-income').innerText.replace('Rs. ', '')}</h3>
+                    </div>
+                </div>
+            `;
+        setTimeout(() => { window.print(); }, 100);
+    }
+
+    function printBalanceSheet() {
+        const dateStr = document.getElementById('bs-date').innerText;
+        const company = getSettings().companyName;
+        document.getElementById('print-container').innerHTML = `
+                <div class="print-wrapper">
+                    <div class="print-header-box">
+                        <h1 style="text-transform: uppercase;">${company}</h1>
+                        <h2 style="font-size: 20px; font-weight: 600; margin: 10px 0 4px 0;">Balance Sheet</h2>
+                        <p style="font-size: 16px; font-weight: 600; margin: 0;">${dateStr}</p>
+                        <p style="font-size: 12px; font-style: italic; margin: 6px 0 0 0; color: #B8904D;">(Amounts in PKR)</p>
+                    </div>
+
+                    <div style="display: flex; gap: 40px; padding: 20px;">
+                        <div style="flex: 1;">
+                            <h3 style="font-size: 14px; text-transform: uppercase; color: #1e293b; border-bottom: 2px solid #1e293b; padding-bottom: 5px;">Assets</h3>
+                            <table class="print-table" style="margin-top: 10px; border: none;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 20%; border-right: 1px solid #cbd5e1;">CODE</th>
+                                        <th style="text-align: left; width: 50%; border-right: 1px solid #cbd5e1;">ACCOUNT</th>
+                                        <th style="text-align: right; width: 30%;">AMOUNT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${document.getElementById('bs-ast-body').innerHTML}</tbody>
+                                <tfoot style="border-top: 2px solid #1e293b;"><tr><td colspan="2" style="text-align: left; text-transform: uppercase; background: none !important;">Total Assets</td><td style="text-align: right; background: none !important;">${document.getElementById('bs-total-ast').innerText.replace('Rs. ', '')}</td></tr></tfoot>
+                            </table>
+                        </div>
+
+                        <div style="flex: 1;">
+                            <h3 style="font-size: 14px; text-transform: uppercase; color: #1e293b; border-bottom: 2px solid #1e293b; padding-bottom: 5px;">Liabilities</h3>
+                            <table class="print-table" style="margin-top: 10px; border: none; margin-bottom: 30px;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 20%; border-right: 1px solid #cbd5e1;">CODE</th>
+                                        <th style="text-align: left; width: 50%; border-right: 1px solid #cbd5e1;">ACCOUNT</th>
+                                        <th style="text-align: right; width: 30%;">AMOUNT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${document.getElementById('bs-liab-body').innerHTML}</tbody>
+                                <tfoot style="border-top: 2px solid #1e293b;"><tr><td colspan="2" style="text-align: left; text-transform: uppercase; background: none !important;">Total Liabilities</td><td style="text-align: right; background: none !important;">${document.getElementById('bs-total-liab').innerText}</td></tr></tfoot>
+                            </table>
+
+                            <h3 style="font-size: 14px; text-transform: uppercase; color: #1e293b; border-bottom: 2px solid #1e293b; padding-bottom: 5px;">Owner's Equity</h3>
+                            <table class="print-table" style="margin-top: 10px; border: none;">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 20%; border-right: 1px solid #cbd5e1;">CODE</th>
+                                        <th style="text-align: left; width: 50%; border-right: 1px solid #cbd5e1;">ACCOUNT</th>
+                                        <th style="text-align: right; width: 30%;">AMOUNT</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${document.getElementById('bs-eq-body').innerHTML}</tbody>
+                                <tfoot style="border-top: 2px solid #1e293b;"><tr><td colspan="2" style="text-align: left; text-transform: uppercase; background: none !important;">Total Equity</td><td style="text-align: right; background: none !important;">${document.getElementById('bs-total-eq').innerText}</td></tr></tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div style="margin: 0; border-top: 4px double #1e293b; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; background-color: #f8fafc;">
+                        <h3 style="margin: 0; text-transform: uppercase; font-size: 14px; color: #1e293b; flex: 1;"></h3>
+                        <div style="flex: 1; display: flex; justify-content: space-between;">
+                            <h3 style="margin: 0; text-transform: uppercase; font-size: 14px; color: #1e293b;">Total Liabilities & Equity</h3>
+                            <h3 style="margin: 0; font-size: 18px; color: #1e293b;">${document.getElementById('bs-total-liab-eq').innerText.replace('Rs. ', '')}</h3>
+                        </div>
+                    </div>
+                </div>
+            `;
+        setTimeout(() => { window.print(); }, 100);
+    }
+
+    function printTrialBalance() {
+        if(coaCache.length === 0) { showToast("No data available to print", true); return; }
+
+        let totalDr = 0; let totalCr = 0;
+        const rows = coaCache.map(a => {
+            let dr = 0; let cr = 0; const bal = a.currentBalance;
+            if (['ASSET', 'EXPENSE'].includes(a.accountCategory)) {
+                if (bal >= 0) dr = bal; else cr = Math.abs(bal);
+            } else {
+                if (bal >= 0) cr = bal; else dr = Math.abs(bal);
+            }
+            totalDr += dr; totalCr += cr;
+            if(dr === 0 && cr === 0) return '';
+            return `<tr>
+                    <td class="text-center" style="border-right: 1px solid #cbd5e1; font-weight: bold;">${a.accountCode}</td>
+                    <td class="text-left" style="border-right: 1px solid #cbd5e1;">${a.accountName}</td>
+                    <td class="text-right" style="border-right: 1px solid #cbd5e1;">${dr > 0 ? dr.toLocaleString() : ''}</td>
+                    <td class="text-right">${cr > 0 ? cr.toLocaleString() : ''}</td>
+                </tr>`;
+        }).join('');
+
+        const printDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        const company = getSettings().companyName;
+
+        document.getElementById('print-container').innerHTML = `
+                <div class="print-wrapper">
+                    <div class="print-header-box">
+                        <h1 style="text-transform: uppercase;">${company}</h1>
+                        <h2 style="font-size: 20px; font-weight: 600; margin: 10px 0 4px 0;">Post-Closing Trial Balance</h2>
+                        <p style="font-size: 16px; font-weight: 600; margin: 0;">${printDate}</p>
+                        <p style="font-size: 12px; font-style: italic; margin: 6px 0 0 0; color: #B8904D;">(Amounts in PKR)</p>
+                    </div>
+                    <table class="print-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%; border-right: 1px solid #cbd5e1;">ACCOUNT NUMBER</th>
+                                <th style="text-align: left; width: 45%; border-right: 1px solid #cbd5e1;">ACCOUNT TITLE</th>
+                                <th style="text-align: right; width: 20%; border-right: 1px solid #cbd5e1;">DEBIT</th>
+                                <th style="text-align: right; width: 20%;">CREDIT</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rows}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" class="text-center" style="text-transform: uppercase; font-weight: 900; border-right: 1px solid #cbd5e1;">Totals</td>
+                                <td class="text-right" style="font-weight: 900; border-right: 1px solid #cbd5e1;">${totalDr.toLocaleString()}</td>
+                                <td class="text-right" style="font-weight: 900;">${totalCr.toLocaleString()}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            `;
+
+        setTimeout(() => { window.print(); }, 100);
+    }
+
+    function exportLedgerPDF() {
+        const title = document.getElementById('lv-title').innerText;
+        const dateStr = document.getElementById('lv-date').innerText;
+        const company = getSettings().companyName;
+
+        document.getElementById('print-container').innerHTML = `
+                <div class="print-wrapper">
+                    <div class="print-header-box">
+                        <h1 style="text-transform: uppercase;">${company}</h1>
+                        <h2 style="font-size: 20px; font-weight: 600; margin: 10px 0 4px 0;">${title}</h2>
+                        <p style="font-size: 16px; font-weight: 600; margin: 0;">${dateStr}</p>
+                        <p style="font-size: 12px; font-style: italic; margin: 6px 0 0 0; color: #B8904D;">(Amounts in PKR)</p>
+                    </div>
+                    <table class="print-table">
+                        <thead>${document.getElementById('lv-head').innerHTML}</thead>
+                        <tbody>${document.getElementById('lv-body').innerHTML}</tbody>
+                    </table>
+                </div>
+            `;
+
+        setTimeout(() => { window.print(); }, 100);
+    }
+
+    // --- GENERAL LEDGER REPORTING (Statement of Account) ---
+    async function initLedgerView() {
+        populateLedgerTargets();
+        document.getElementById('l-start').value = new Date().getFullYear() + "-01-01";
+        document.getElementById('l-end').value = new Date().toISOString().split('T')[0];
+    }
+
+    function populateLedgerTargets() {
+        const type = document.getElementById('ledger-type').value;
+        const target = document.getElementById('ledger-target');
+        if(type === 'BANK') target.innerHTML = accountsCache.map(a => `<option value="${a.id}">${a.accountCode} - ${a.accountName}</option>`).join('');
+        if(type === 'UNIT') target.innerHTML = unitsCache.map(u => `<option value="${u.id}">${u.unitNumber} - ${u.ownerName}</option>`).join('');
+        if(type === 'STAFF') target.innerHTML = staffCache.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+    }
+
+    async function generateLedger() {
+        const type = document.getElementById('ledger-type').value;
+        const targetId = parseInt(document.getElementById('ledger-target').value);
+        const targetName = document.getElementById('ledger-target').options[document.getElementById('ledger-target').selectedIndex].text;
+        const s = new Date(document.getElementById('l-start').value);
+        const e = new Date(document.getElementById('l-end').value);
+
+        document.getElementById('ledger-view-area').classList.remove('hidden');
+        document.getElementById('lv-title').innerText = `Statement of Account: ${targetName}`;
+        document.getElementById('lv-date').innerText = `For Period: ${s.toLocaleDateString()} to ${e.toLocaleDateString()}`;
+
+        let rows = [];
+
+        if(type === 'BANK') {
+            if (jvCache.length === 0) {
+                try { jvCache = await (await fetch(`${API_URL}/jvs`)).json(); } catch (err) { console.error(err); }
+            }
+
+            document.getElementById('lv-head').innerHTML = '<tr><th class="py-3 px-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Date</th><th class="py-3 px-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Particulars</th><th class="py-3 px-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-center">Vch Type</th><th class="py-3 px-6 text-emerald-600 dark:text-emerald-400 uppercase tracking-widest text-right">Credit (In)</th><th class="py-3 px-6 text-rose-600 dark:text-rose-400 uppercase tracking-widest text-right">Debit (Out)</th><th class="py-3 px-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-right">Balance</th></tr>';
+            const targetAcc = accountsCache.find(a => a.id === targetId);
+            let totalDbAll = 0, totalCrAll = 0, dbBefore = 0, crBefore = 0, periodDb = 0, periodCr = 0;
+            const transactions = [];
+
+            jvCache.forEach(j => {
+                const d = new Date(j.voucherDate);
+                j.lines.forEach(l => {
+                    if (l.account && l.account.id === targetId) {
+                        totalDbAll += l.debit; totalCrAll += l.credit;
+                        if (d < s) { dbBefore += l.debit; crBefore += l.credit; }
+                        else if (d <= e) { transactions.push({ d, desc: j.memo, vch: j.voucherNo, dr: l.debit, cr: l.credit }); }
+                    }
+                });
+            });
+
+            transactions.sort((a,b) => a.d - b.d);
+            const currentDBBal = targetAcc ? targetAcc.currentBalance : 0;
+            const initialSystemBal = currentDBBal - (totalDbAll - totalCrAll);
+            const openingBal = initialSystemBal + (dbBefore - crBefore);
+
+            let runBal = openingBal;
+            rows.push(`<tr class="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-700/50"><td class="py-4 px-6 font-medium text-slate-700 dark:text-slate-300 text-left">${s.toLocaleDateString()}</td><td class="py-4 px-6 font-black text-slate-900 dark:text-white">Opening Balance</td><td class="py-4 px-6 text-center text-slate-400">-</td><td class="py-4 px-6 text-right text-slate-400">-</td><td class="py-4 px-6 text-right text-slate-400">-</td><td class="py-4 px-6 text-right font-black text-slate-900 dark:text-white">Rs. ${runBal.toLocaleString()}</td></tr>`);
+
+            transactions.forEach(t => {
+                runBal += (t.dr - t.cr); periodDb += t.dr; periodCr += t.cr;
+                rows.push(`<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-100 dark:border-slate-700/50"><td class="py-4 px-6 text-slate-600 dark:text-slate-400">${t.d.toLocaleDateString()}</td><td class="py-4 px-6 text-slate-800 dark:text-slate-200 font-medium">${t.desc}</td><td class="py-4 px-6 text-xs text-slate-500 text-center font-mono">${t.vch}</td><td class="py-4 px-6 text-right font-black text-emerald-600 dark:text-emerald-400">${t.dr ? t.dr.toLocaleString() : '-'}</td><td class="py-4 px-6 text-right font-black text-rose-600 dark:text-rose-400">${t.cr ? t.cr.toLocaleString() : '-'}</td><td class="py-4 px-6 text-right font-black text-slate-900 dark:text-white">Rs. ${runBal.toLocaleString()}</td></tr>`);
+            });
+
+            rows.push(`<tr class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-600"><td colspan="3" class="py-5 px-6 text-right uppercase tracking-widest text-[10px] font-black text-slate-500 dark:text-slate-400">Period Totals</td><td class="py-5 px-6 text-right font-black text-emerald-600 dark:text-emerald-400">${periodDb.toLocaleString()}</td><td class="py-5 px-6 text-right font-black text-rose-600 dark:text-rose-400">${periodCr.toLocaleString()}</td><td class="py-5 px-6 text-right font-black text-slate-900 dark:text-white">Closing: Rs. ${runBal.toLocaleString()}</td></tr>`);
+
+        } else if (type === 'UNIT') {
+            document.getElementById('lv-head').innerHTML = '<tr><th class="py-3 px-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Date</th><th class="py-3 px-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Particulars</th><th class="py-3 px-6 text-rose-600 dark:text-rose-400 uppercase tracking-widest text-right">Billed (Out)</th><th class="py-3 px-6 text-emerald-600 dark:text-emerald-400 uppercase tracking-widest text-right">Paid (In)</th><th class="py-3 px-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-right">Remaining Dues</th></tr>';
+            let uBills = [];
+            rawElec.filter(x => x.unit.id === targetId).forEach(x => { uBills.push({ d: new Date(x.createdAt), type: 'Electricity Charges', m: x.month, s: x.status, a: x.total, penalty: x.penalty || 0 }); });
+            rawMaint.filter(x => x.unit.id === targetId).forEach(x => { uBills.push({ d: new Date(x.createdAt), type: 'Maintenance Dues', m: x.month, s: x.status, a: x.total, penalty: x.penalty || 0 }); });
+            uBills.sort((a,b) => a.d - b.d);
+            let openingBal = 0, periodDr = 0, periodCr = 0;
+            uBills.forEach(b => { if (b.d < s && b.s === 'UNPAID') openingBal += b.a; });
+            let runBal = openingBal;
+            rows.push(`<tr class="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-700/50"><td class="py-4 px-6 font-medium text-slate-700 dark:text-slate-300 text-left">${s.toLocaleDateString()}</td><td class="py-4 px-6 font-black text-slate-900 dark:text-white">Opening Balance</td><td class="text-right py-4 px-6 text-slate-400">-</td><td class="text-right py-4 px-6 text-slate-400">-</td><td class="py-4 px-6 text-right font-black text-slate-900 dark:text-white">Rs. ${runBal.toLocaleString()}</td></tr>`);
+
+            uBills.forEach(b => {
+                if (b.d >= s && b.d <= e) {
+                    // 1. Check and display Penalty as a separate row
+                    if (b.penalty && b.penalty > 0) {
+                        let pDr = b.penalty;
+                        let pCr = b.s === 'PAID' ? b.penalty : 0;
+                        runBal += (pDr - pCr);
+                        periodDr += pDr; periodCr += pCr;
+
+                        rows.push(`
+            <tr class="bg-orange-50/30 border-b border-orange-100 dark:bg-orange-900/10">
+                <td class="py-4 px-6 text-slate-500 text-xs">${b.d.toLocaleDateString()}</td>
+                <td class="py-4 px-6 font-bold text-orange-700 dark:text-orange-400 uppercase text-[10px]">
+                    <i class="fa-solid fa-triangle-exclamation mr-2"></i>Late Payment Penalty
+                </td>
+                <td class="py-4 px-6 text-right font-black text-rose-600 dark:text-rose-400">${pDr.toLocaleString()}</td>
+                <td class="py-4 px-6 text-right font-black text-emerald-600 dark:text-emerald-400">${pCr ? pCr.toLocaleString() : '-'}</td>
+                <td class="py-4 px-6 text-right font-black text-slate-900 dark:text-white">Rs. ${runBal.toLocaleString()}</td>
+            </tr>`);
+                    }
+
+                    // 2. Display the main Bill Row (subtracting penalty from the total to show base amount)
+                    let dr = b.a - (b.penalty || 0);
+                    let cr = b.s === 'PAID' ? dr : 0;
+                    runBal += (dr - cr);
+                    periodDr += dr; periodCr += cr;
+
+                    rows.push(`
+        <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-100 dark:border-slate-700/50">
+            <td class="py-4 px-6 text-slate-600 dark:text-slate-400">${b.d.toLocaleDateString()}</td>
+            <td class="py-4 px-6 text-slate-800 dark:text-slate-200 font-medium">
+                ${b.type} <span class="text-xs text-slate-400 dark:text-slate-500 ml-2">(${b.m})</span>
+            </td>
+            <td class="py-4 px-6 text-right font-black text-rose-600 dark:text-rose-400">${dr ? dr.toLocaleString() : '-'}</td>
+            <td class="py-4 px-6 text-right font-black text-emerald-600 dark:text-emerald-400">${cr ? cr.toLocaleString() : '-'}</td>
+            <td class="py-4 px-6 text-right font-black text-slate-900 dark:text-white">Rs. ${runBal.toLocaleString()}</td>
+        </tr>`);
+                }
+            });
+
+            rows.push(`<tr class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-600"><td colspan="2" class="py-5 px-6 text-right uppercase tracking-widest text-[10px] font-black text-slate-500 dark:text-slate-400">Period Totals</td><td class="py-5 px-6 text-right font-black text-rose-600 dark:text-rose-400">${periodDr.toLocaleString()}</td><td class="py-5 px-6 text-right font-black text-emerald-600 dark:text-emerald-400">${periodCr.toLocaleString()}</td><td class="py-5 px-6 text-right font-black text-slate-900 dark:text-white">Dues: Rs. ${runBal.toLocaleString()}</td></tr>`);
+        } else if (type === 'STAFF') {
+            document.getElementById('lv-head').innerHTML = '<tr><th class="py-3 px-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Date</th><th class="py-3 px-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-left">Particulars</th><th class="py-3 px-6 text-emerald-600 dark:text-emerald-400 uppercase tracking-widest text-right">Earned (Accrued)</th><th class="py-3 px-6 text-rose-600 dark:text-rose-400 uppercase tracking-widest text-right">Disbursed (Paid)</th><th class="py-3 px-6 text-slate-500 dark:text-slate-400 uppercase tracking-widest text-right">Owed to Staff</th></tr>';
+            let sSals = rawSal.filter(x => x.employee.id === targetId).map(x => ({ d: new Date(x.paymentDate), m: x.salaryMonth, rem: x.remarks, s: x.status, a: x.amount })).sort((a,b) => a.d - b.d);
+            let openingBal = 0, periodCr = 0, periodDr = 0;
+            sSals.forEach(x => { if (x.d < s && x.s === 'UNPAID') openingBal += x.a; });
+            let runBal = openingBal;
+            rows.push(`<tr class="bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-700/50"><td class="py-4 px-6 font-medium text-slate-700 dark:text-slate-300 text-left">${s.toLocaleDateString()}</td><td class="py-4 px-6 font-black text-slate-900 dark:text-white">Opening Balance</td><td class="text-right py-4 px-6 text-slate-400">-</td><td class="text-right py-4 px-6 text-slate-400">-</td><td class="py-4 px-6 text-right font-black text-slate-900 dark:text-white">Rs. ${runBal.toLocaleString()}</td></tr>`);
+
+            sSals.forEach(x => {
+                if (x.d >= s && x.d <= e) {
+                    let cr = x.a; let dr = x.s === 'PAID' ? x.a : 0;
+                    runBal += (cr - dr); periodCr += cr; periodDr += dr;
+                    rows.push(`<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors border-b border-slate-100 dark:border-slate-700/50"><td class="py-4 px-6 text-slate-600 dark:text-slate-400">${x.d.toLocaleDateString()}</td><td class="py-4 px-6 text-slate-800 dark:text-slate-200 font-medium">Salary (${x.m}) <span class="text-[10px] text-slate-400 dark:text-slate-500 block">${x.rem ? x.rem : ''}</span></td><td class="py-4 px-6 text-right font-black text-emerald-600 dark:text-emerald-400">${cr.toLocaleString()}</td><td class="py-4 px-6 text-right font-black text-rose-600 dark:text-rose-400">${dr ? dr.toLocaleString() : '-'}</td><td class="py-4 px-6 text-right font-black text-slate-900 dark:text-white">Rs. ${runBal.toLocaleString()}</td></tr>`);
+                }
+            });
+            rows.push(`<tr class="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-300 dark:border-slate-600"><td colspan="2" class="py-5 px-6 text-right uppercase tracking-widest text-[10px] font-black text-slate-500 dark:text-slate-400">Period Totals</td><td class="py-5 px-6 text-right font-black text-emerald-600 dark:text-emerald-400">${periodCr.toLocaleString()}</td><td class="py-5 px-6 text-right font-black text-rose-600 dark:text-rose-400">${periodDr.toLocaleString()}</td><td class="py-5 px-6 text-right font-black text-slate-900 dark:text-white">Owed: Rs. ${runBal.toLocaleString()}</td></tr>`);
+        }
+        document.getElementById('lv-body').innerHTML = rows.length > 2 ? rows.join('') : '<tr><td colspan="6" class="text-center py-8 italic text-slate-400 dark:text-slate-500">No transactions recorded for this period.</td></tr>';
+    }
+
+    function openPenaltyModal(billId) {
+        document.getElementById('penalty-bill-id').value = billId;
+        document.getElementById('penalty-input-amt').value = '';
+        openModal('modal-penalty');
+    }
+
+    async function submitCustomPenalty() {
+        const billId = document.getElementById('penalty-bill-id').value;
+        const amount = document.getElementById('penalty-input-amt').value;
+        if (!amount || isNaN(amount) || amount <= 0) return showToast("Enter a valid amount", true);
+        try {
+            const res = await fetch(`${API_URL}/bills/maintenance/${billId}/penalty?amount=${amount}`, { method: 'PUT' });
+            if (res.ok) {
+                showToast("Penalty applied.");
+                closeModal('modal-penalty');
+                await fetchMasterData();
+                loadSettlements();
+            }
+        } catch (e) { showToast("Connection error", true); }
+    }
+
+    async function handleDatabaseRestore(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        // Custom Confirmation for safety
+        askConfirm(
+            "CRITICAL ACTION",
+            "This will PERMANENTLY overwrite your current database with the selected backup file. This cannot be undone. Are you sure?",
+            async () => {
+                const formData = new FormData();
+                formData.append("file", file);
+
+                showToast("Starting restoration... please wait.");
+
+                try {
+                    const res = await fetch(`${API_URL}/system/restore`, {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (res.ok) {
+                        alert("Database restored successfully. The system will now reload to apply changes.");
+                        location.reload();
+                    } else {
+                        const errorMsg = await res.text();
+                        showToast("Restore failed: " + errorMsg, true);
+                    }
+                } catch (e) {
+                    showToast("Network error during restoration.", true);
+                } finally {
+                    input.value = ''; // Reset file input
+                }
+            }
+        );
+    }
+
+    window.onload = () => {
+        applySettingsToUI();
+        setTimeout(() => { document.getElementById('login-user').focus(); }, 100);
+    };
+</script>
+</body>
+</html>
