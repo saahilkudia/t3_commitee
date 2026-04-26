@@ -1548,130 +1548,126 @@
     }
 
     function printReceipt(type, id) {
-        let bill = null;
-        let title = "";
-        let detailsHtml = "";
-        let documentTitle = ""; // New: added to handle dynamic titles like "SALARY SLIP"
+    let bill = null;
+    let title = "";
+    let detailsHtml = "";
+    let documentTitle = ""; 
 
-        const company = getSettings().companyName || "Takmeel Builders & Developers"; [cite: 257]
-        const printDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    const company = getSettings().companyName || "Takmeel Builders & Developers";
+    const printDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
-        if(type === 'ELEC') {
-            bill = rawElec.find(b => b.id === id); [cite: 467]
-            if(!bill) return showToast("Bill not found", true);
-            title = "Electricity Invoice";
-            documentTitle = bill.status === 'PAID' ? "OFFICIAL RECEIPT" : "TAX INVOICE"; [cite: 484]
-            let rate = bill.unitPrice || getSettings().elecRate || 35.0; [cite: 257]
-            let elecCost = (bill.consumed || 0) * rate;
+    if(type === 'ELEC') {
+        bill = rawElec.find(b => b.id === id);
+        if(!bill) return showToast("Bill not found", true);
+        title = "Electricity Invoice";
+        documentTitle = bill.status === 'PAID' ? "OFFICIAL RECEIPT" : "TAX INVOICE";
+        let rate = bill.unitPrice || getSettings().elecRate || 35.0;
+        let elecCost = (bill.consumed || 0) * rate;
 
-            detailsHtml = `
-                <tr><td class="text-left">Meter Reading (Previous)</td><td class="text-right">${bill.prevReading || 0}</td></tr>
-                <tr><td class="text-left">Meter Reading (Current)</td><td class="text-right">${bill.currReading || 0}</td></tr>
-                <tr><td class="text-left">Units Consumed</td><td class="text-right">${bill.consumed || 0}</td></tr>
-                <tr><td class="text-left">Rate per Unit</td><td class="text-right">Rs. ${rate.toFixed(2)}</td></tr>
-                <tr><td class="text-left" style="font-weight:bold;">Electricity Charges</td><td class="text-right" style="font-weight:bold;">Rs. ${elecCost.toLocaleString()}</td></tr>
-                <tr><td class="text-left">Fixed Charges</td><td class="text-right">Rs. ${(bill.fixedCharges || 0).toLocaleString()}</td></tr>
-                <tr><td class="text-left">Late Payment Penalty</td><td class="text-right">Rs. ${(bill.penalty || 0).toLocaleString()}</td></tr>
-            `;
-        } else if (type === 'MAINT') {
-            bill = rawMaint.find(b => b.id === id); [cite: 477]
-            if(!bill) return showToast("Bill not found", true);
-            title = "Maintenance Invoice";
-            documentTitle = bill.status === 'PAID' ? "OFFICIAL RECEIPT" : "TAX INVOICE";
-            detailsHtml = `
-                <tr><td class="text-left" style="font-weight:bold;">Monthly Maintenance Fee</td><td class="text-right" style="font-weight:bold;">Rs. ${(bill.amount || 0).toLocaleString()}</td></tr>
-                <tr><td class="text-left">Late Payment Penalty</td><td class="text-right">Rs. ${(bill.penalty || 0).toLocaleString()}</td></tr>
-            `;
-        } 
-        /* --- START NEW CHANGE: STAFF PAYSLIP LOGIC --- */
-        else if (type === 'SAL') {
-            bill = rawSal.find(s => s.id === id); [cite: 256, 296]
-            if(!bill) return showToast("Salary record not found", true);
-            title = "Staff Payslip";
-            documentTitle = "OFFICIAL PAYSLIP";
-            detailsHtml = `
-                <tr><td class="text-left">Basic Salary Accrued</td><td class="text-right">Rs. ${(bill.amount || 0).toLocaleString()}</td></tr>
-                <tr><td class="text-left">Salary Month</td><td class="text-right">${bill.salaryMonth || 'N/A'}</td></tr>
-                <tr><td class="text-left">Payment Status</td><td class="text-right">Disbursed / Paid</td></tr>
-                <tr><td class="text-left">Remarks</td><td class="text-right">${bill.remarks || 'Monthly Payroll Processing'}</td></tr>
-            `;
-        }
-        /* --- END NEW CHANGE --- */
+        detailsHtml = `
+            <tr><td class="text-left">Meter Reading (Previous)</td><td class="text-right">${bill.prevReading || 0}</td></tr>
+            <tr><td class="text-left">Meter Reading (Current)</td><td class="text-right">${bill.currReading || 0}</td></tr>
+            <tr><td class="text-left">Units Consumed</td><td class="text-right">${bill.consumed || 0}</td></tr>
+            <tr><td class="text-left">Rate per Unit</td><td class="text-right">Rs. ${rate.toFixed(2)}</td></tr>
+            <tr><td class="text-left" style="font-weight:bold;">Electricity Charges</td><td class="text-right" style="font-weight:bold;">Rs. ${elecCost.toLocaleString()}</td></tr>
+            <tr><td class="text-left">Fixed Charges</td><td class="text-right">Rs. ${(bill.fixedCharges || 0).toLocaleString()}</td></tr>
+            <tr><td class="text-left">Late Payment Penalty</td><td class="text-right">Rs. ${(bill.penalty || 0).toLocaleString()}</td></tr>
+        `;
+    } else if (type === 'MAINT') {
+        bill = rawMaint.find(b => b.id === id);
+        if(!bill) return showToast("Bill not found", true);
+        title = "Maintenance Invoice";
+        documentTitle = bill.status === 'PAID' ? "OFFICIAL RECEIPT" : "TAX INVOICE";
+        detailsHtml = `
+            <tr><td class="text-left" style="font-weight:bold;">Monthly Maintenance Fee</td><td class="text-right" style="font-weight:bold;">Rs. ${(bill.amount || 0).toLocaleString()}</td></tr>
+            <tr><td class="text-left">Late Payment Penalty</td><td class="text-right">Rs. ${(bill.penalty || 0).toLocaleString()}</td></tr>
+        `;
+    } 
+    // --- STAFF PAYSLIP LOGIC ---
+    else if (type === 'SAL') {
+        bill = rawSal.find(s => s.id === id);
+        if(!bill) return showToast("Salary record not found", true);
+        title = "Staff Payslip";
+        documentTitle = "OFFICIAL PAYSLIP";
+        detailsHtml = `
+            <tr><td class="text-left">Basic Salary Accrued</td><td class="text-right">Rs. ${(bill.amount || 0).toLocaleString()}</td></tr>
+            <tr><td class="text-left">Salary Month</td><td class="text-right">${bill.salaryMonth || 'N/A'}</td></tr>
+            <tr><td class="text-left">Payment Status</td><td class="text-right">Disbursed / Paid</td></tr>
+            <tr><td class="text-left">Remarks</td><td class="text-right">${bill.remarks || 'Monthly Payroll Processing'}</td></tr>
+        `;
+    }
 
-        let isPaid = bill.status === 'PAID';
-        let watermark = isPaid ?
-            `<div style="position:absolute; top:35%; left:25%; font-size:120px; color:rgba(16, 185, 129, 0.1); transform:rotate(-30deg); font-weight:900; z-index:0; border: 8px solid rgba(16, 185, 129, 0.1); padding: 20px; text-align:center; border-radius: 20px;">PAID</div>` : [cite: 483]
-            `<div style="position:absolute; top:35%; left:15%; font-size:120px; color:rgba(225, 29, 72, 0.08); transform:rotate(-30deg); font-weight:900; z-index:0; border: 8px solid rgba(225, 29, 72, 0.08); padding: 20px; text-align:center; border-radius: 20px;">UNPAID</div>`;
+    let isPaid = bill.status === 'PAID';
+    let watermark = isPaid ?
+        `<div style="position:absolute; top:35%; left:25%; font-size:120px; color:rgba(16, 185, 129, 0.1); transform:rotate(-30deg); font-weight:900; z-index:0; border: 8px solid rgba(16, 185, 129, 0.1); padding: 20px; text-align:center; border-radius: 20px;">PAID</div>` :
+        `<div style="position:absolute; top:35%; left:15%; font-size:120px; color:rgba(225, 29, 72, 0.08); transform:rotate(-30deg); font-weight:900; z-index:0; border: 8px solid rgba(225, 29, 72, 0.08); padding: 20px; text-align:center; border-radius: 20px;">UNPAID</div>`;
 
-        /* --- START NEW CHANGE: DYNAMIC HEADERS FOR STAFF VS UNITS --- */
-        let safeUnit = type === 'SAL' ? "Staff ID: " + (bill.employee?.id || 'N/A') : (bill.unit ? bill.unit.unitNumber : '?');
-        let safeOwner = type === 'SAL' ? (bill.employee?.name || 'N/A') : (bill.unit ? bill.unit.ownerName : '?');
-        /* --- END NEW CHANGE --- */
+    let safeUnit = type === 'SAL' ? "Staff ID: " + (bill.employee?.id || 'N/A') : (bill.unit ? bill.unit.unitNumber : '?');
+    let safeOwner = type === 'SAL' ? (bill.employee?.name || 'N/A') : (bill.unit ? bill.unit.ownerName : '?');
 
-        const parseDate = (d) => {
-            if (!d) return new Date();
-            if (Array.isArray(d)) return new Date(d[0], d[1] - 1, d[2]); [cite: 486]
-            return new Date(d);
-        };
-        
-        // New: Support for paymentDate (Staff) vs createdAt (Units)
-        let safeDate = parseDate(type === 'SAL' ? bill.paymentDate : bill.createdAt).toLocaleDateString('en-US');
+    const parseDate = (d) => {
+        if (!d) return new Date();
+        if (Array.isArray(d)) return new Date(d[0], d[1] - 1, d[2]);
+        return new Date(d);
+    };
+    
+    let safeDate = parseDate(type === 'SAL' ? bill.paymentDate : bill.createdAt).toLocaleDateString('en-US');
 
-        document.getElementById('print-container').innerHTML = `
-            <div class="print-wrapper" style="position:relative; background: white;">
-                <div class="print-header-box" style="background-color: #1e293b !important; color: #ffffff !important; padding: 30px; text-align: center; border-bottom: 4px solid #B8904D !important;">
-                    <h1 style="text-transform: uppercase; color: #ffffff !important; letter-spacing: 3px;">${company}</h1>
-                    <h2 style="font-size: 20px; font-weight: 600; margin: 10px 0 4px 0;">${documentTitle}</h2>
-                    <p style="font-size: 16px; font-weight: 600; margin: 0;">${title}</p>
-                    <p style="font-size: 12px; font-style: italic; margin: 6px 0 0 0; color: #B8904D;">(Amounts in PKR)</p>
+    document.getElementById('print-container').innerHTML = `
+        <div class="print-wrapper" style="position:relative; background: white;">
+            <div class="print-header-box" style="background-color: #1e293b !important; color: #ffffff !important; padding: 30px; text-align: center; border-bottom: 4px solid #B8904D !important;">
+                <h1 style="text-transform: uppercase; color: #ffffff !important; letter-spacing: 3px;">${company}</h1>
+                <h2 style="font-size: 20px; font-weight: 600; margin: 10px 0 4px 0;">${documentTitle}</h2>
+                <p style="font-size: 16px; font-weight: 600; margin: 0;">${title}</p>
+                <p style="font-size: 12px; font-style: italic; margin: 6px 0 0 0; color: #B8904D;">(Amounts in PKR)</p>
+            </div>
+
+            <div style="padding: 30px; position:relative; z-index: 10;">
+                ${watermark}
+                <div style="display:flex; justify-content: space-between; margin-bottom: 30px;">
+                    <div>
+                        <p style="margin: 0 0 5px 0; font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold;">Entity Details:</p>
+                        <h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 900; color: #1e293b;">${safeOwner}</h3>
+                        <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">${safeUnit}</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #1e293b;">Ref: ${type}-${bill.id}</p>
+                        <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Date: ${safeDate}</p>
+                    </div>
                 </div>
 
-                <div style="padding: 30px; position:relative; z-index: 10;">
-                    ${watermark}
-                    <div style="display:flex; justify-content: space-between; margin-bottom: 30px;">
-                        <div>
-                            <p style="margin: 0 0 5px 0; font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold;">Entity Details:</p>
-                            <h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 900; color: #1e293b;">${safeOwner}</h3>
-                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">${safeUnit}</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <p style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #1e293b;">Ref: ${type}-${bill.id}</p>
-                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Date: ${safeDate}</p>
-                        </div>
+                <table class="print-table" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+                    <thead>
+                        <tr style="background-color: #f8fafc !important;">
+                            <th style="text-align: left; width: 70%; border: 1px solid #cbd5e1; padding: 12px 15px;">DESCRIPTION</th>
+                            <th style="text-align: right; width: 30%; border: 1px solid #cbd5e1; padding: 12px 15px;">AMOUNT</th>
+                        </tr>
+                    </thead>
+                    <tbody>${detailsHtml}</tbody>
+                    <tfoot>
+                        <tr style="background-color: #f1f5f9 !important;">
+                            <td class="text-right" style="font-weight: 900; text-transform: uppercase; border: 1px solid #cbd5e1; padding: 12px 15px;">Total</td>
+                            <td class="text-right" style="font-weight: 900; font-size: 16px; color: #1e293b; border: 1px solid #cbd5e1; padding: 12px 15px;">Rs. ${(bill.total || bill.amount || 0).toLocaleString()}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div style="margin-top: 60px; display:flex; justify-content:space-between;">
+                    <div style="width: 40%; text-align:center;">
+                        <div style="border-bottom: 1px solid #1e293b; height: 40px; margin-bottom: 10px;"></div>
+                        <p style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Authorized Signature</p>
                     </div>
-
-                    <table class="print-table" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-                        <thead>
-                            <tr style="background-color: #f8fafc !important;">
-                                <th style="text-align: left; width: 70%; border: 1px solid #cbd5e1; padding: 12px 15px;">DESCRIPTION</th>
-                                <th style="text-align: right; width: 30%; border: 1px solid #cbd5e1; padding: 12px 15px;">AMOUNT</th>
-                            </tr>
-                        </thead>
-                        <tbody>${detailsHtml}</tbody>
-                        <tfoot>
-                            <tr style="background-color: #f1f5f9 !important;">
-                                <td class="text-right" style="font-weight: 900; text-transform: uppercase; border: 1px solid #cbd5e1; padding: 12px 15px;">Total</td>
-                                <td class="text-right" style="font-weight: 900; font-size: 16px; color: #1e293b; border: 1px solid #cbd5e1; padding: 12px 15px;">Rs. ${(bill.total || bill.amount || 0).toLocaleString()}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-
-                    <div style="margin-top: 60px; display:flex; justify-content:space-between;">
-                        <div style="width: 40%; text-align:center;">
-                            <div style="border-bottom: 1px solid #1e293b; height: 40px; margin-bottom: 10px;"></div>
-                            <p style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Authorized Signature</p>
-                        </div>
-                        <div style="width: 40%; text-align:center; display: flex; flex-direction: column; justify-content: flex-end;">
-                            <p style="font-size: 11px; font-style: italic; color: #64748b; margin: 0;">Generated by Takmeel ERP</p>
-                            <p style="font-size: 11px; font-style: italic; color: #64748b; margin: 0;">Printed on ${printDate}</p>
-                        </div>
+                    <div style="width: 40%; text-align:center; display: flex; flex-direction: column; justify-content: flex-end;">
+                        <p style="font-size: 11px; font-style: italic; color: #64748b; margin: 0;">Generated by Takmeel ERP</p>
+                        <p style="font-size: 11px; font-style: italic; color: #64748b; margin: 0;">Printed on ${printDate}</p>
                     </div>
                 </div>
             </div>
-        `;
+        </div>
+    `;
 
-        setTimeout(() => { window.print(); }, 100);
-    }
+    setTimeout(() => { window.print(); }, 100);
+}
 
     // --- NEW: FINANCIAL REPORTS LOGIC (RESTORED) ---
     async function loadIncomeStatement() {
