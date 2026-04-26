@@ -159,6 +159,7 @@
         <button onclick="showSection('elec')" data-tab="elec" id="nav-elec" class="nav-link"><i class="fa-solid fa-bolt w-6 text-center text-amber-500"></i> Bill Electricity</button>
         <button onclick="showSection('maint')" data-tab="maint" id="nav-maint" class="nav-link"><i class="fa-solid fa-wrench w-6 text-center text-blue-500"></i> Bill Maint</button>
         <button onclick="showSection('payroll')" data-tab="payroll" id="nav-payroll" class="nav-link"><i class="fa-solid fa-id-card w-6 text-center text-emerald-500"></i> Staff Payroll</button>
+        <button onclick="showSection('staff-payslips')" data-tab="staff-payslips" id="nav-staff-payslips" class="nav-link"><i class="fa-solid fa-file-invoice-dollar w-6 text-center text-purple-500"></i> Staff Payslips</button>
         <button onclick="showSection('outgoings')" data-tab="outgoings" id="nav-outgoings" class="nav-link"><i class="fa-solid fa-wallet w-6 text-center text-rose-500"></i> Log Outgoings</button>
         <button onclick="showSection('receipts')" data-tab="receipts" id="nav-receipts" class="nav-link"><i class="fa-solid fa-file-invoice w-6 text-center text-sky-500"></i> Invoices & Receipts</button>
 
@@ -698,6 +699,34 @@
         </div>
     </div>
 
+    <div id="section-staff-payslips" class="hidden space-y-6">
+    <div class="flex justify-between items-center mb-4">
+        <h1 class="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-widest">Staff Payslips</h1>
+        <div class="flex gap-3">
+            <button onclick="loadSalariesForPayslips()" class="p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:bg-slate-50 transition-colors shadow-sm">
+                <i class="fa-solid fa-rotate text-slate-500"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="glass-panel rounded-[2rem] overflow-hidden border border-slate-200 dark:border-slate-700 shadow-xl">
+        <table class="w-full text-left text-sm">
+            <thead class="bg-slate-100/50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                    <th class="py-4 px-6 font-black text-slate-500 uppercase tracking-widest">Employee</th>
+                    <th class="py-4 px-6 font-black text-slate-500 uppercase tracking-widest">Salary Month</th>
+                    <th class="py-4 px-6 font-black text-slate-500 uppercase tracking-widest">Payment Date</th>
+                    <th class="py-4 px-6 font-black text-slate-500 uppercase tracking-widest text-right">Amount</th>
+                    <th class="py-4 px-6 font-black text-slate-500 uppercase tracking-widest text-center">Status</th>
+                    <th class="py-4 px-6 font-black text-slate-500 uppercase tracking-widest text-right">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="table-staff-payslips" class="divide-y divide-slate-100 dark:divide-slate-700/50">
+                </tbody>
+        </table>
+    </div>
+</div>
+
 </main>
 
 <!-- MODALS (Updated to Glass & Theme) -->
@@ -821,7 +850,27 @@
     </div>
 </div>
 
-<div id="modal-unit" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-lg rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-gold-500 shadow-2xl"><h2 class="text-2xl font-black mb-6 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-4 uppercase tracking-widest">Register Unit</h2><form id="form-unit" onsubmit="handleUnitSave(event)" class="space-y-5"><input type="hidden" id="in-unit-id"><div class="grid grid-cols-2 gap-4"><input type="text" id="u-num" placeholder="Unit Number" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><input type="text" id="u-owner" placeholder="Owner Name" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required></div><input type="text" id="u-cnic" placeholder="CNIC Number" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500"><div class="flex gap-4 pt-4"><button type="button" onclick="closeModal('modal-unit')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-gold-500 hover:bg-gold-600 text-white rounded-xl font-bold shadow-lg shadow-gold-500/30 uppercase tracking-widest">Save</button></div></form></div></div>
+<div id="modal-unit" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity">
+    <div class="glass-panel w-full max-w-lg rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-gold-500 shadow-2xl">
+        <h2 class="text-2xl font-black mb-6 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700 pb-4 uppercase tracking-widest">Register Unit</h2>
+        <form id="form-unit" onsubmit="handleUnitSave(event)" class="space-y-5">
+            <input type="hidden" id="in-unit-id">
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="u-num" placeholder="Unit Number" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500" required>
+                <input type="text" id="u-owner" placeholder="Owner Name" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500" required>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <input type="text" id="u-cnic" placeholder="CNIC Number" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none">
+                <input type="text" id="u-mobile" placeholder="Mobile #" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none">
+            </div>
+            <input type="text" id="u-address" placeholder="Physical Address" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none">
+            <div class="flex gap-4 pt-4">
+                <button type="button" onclick="closeModal('modal-unit')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold">Cancel</button>
+                <button type="submit" class="flex-1 py-4 bg-gold-500 hover:bg-gold-600 text-white rounded-xl font-bold shadow-lg shadow-gold-500/30 uppercase tracking-widest">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div id="modal-bulk-accrual" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-sm rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-slate-800 dark:border-t-slate-400 shadow-2xl"><h2 class="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest">Batch Accrual</h2><form id="form-bulk-accrual" onsubmit="handleBulkAccrualSubmit(event)" class="space-y-5"><input type="text" id="bulk-month" placeholder="Salary Month" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><div class="flex gap-4 pt-2"><button type="button" onclick="closeModal('modal-bulk-accrual')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black shadow-lg uppercase tracking-widest">Generate</button></div></form></div></div>
 
@@ -829,7 +878,24 @@
 
 <div id="modal-pay-single" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-md rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-slate-800 dark:border-t-slate-400 shadow-2xl"><h2 class="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest">Log A/P</h2><form id="form-single-pay" onsubmit="handleSinglePaySubmit(event)" class="space-y-5"><input type="hidden" id="pay-emp-id"><div class="grid grid-cols-2 gap-4"><input type="text" id="pay-month" placeholder="Salary Month" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><input type="number" id="pay-amt" class="w-full p-4 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black text-slate-500 dark:text-slate-400 outline-none" readonly></div><textarea id="pay-rem" placeholder="Remarks..." class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-medium text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" rows="2"></textarea><div class="flex gap-4 pt-2"><button type="button" onclick="closeModal('modal-pay-single')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black shadow-lg uppercase tracking-widest">Create A/P</button></div></form></div></div>
 
-<div id="modal-emp" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-sm rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-gold-500 shadow-2xl"><h2 class="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest">Staff Registry</h2><form id="form-emp" onsubmit="handleEmpSave(event)" class="space-y-5"><input type="hidden" id="emp-id"> <input type="text" id="emp-name" placeholder="Full Name" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><input type="number" id="emp-sal" placeholder="Salary" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><div class="flex gap-4 pt-2"><button type="button" onclick="closeModal('modal-emp')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-gold-500 hover:bg-gold-600 text-white rounded-xl font-black shadow-lg uppercase tracking-widest">Save</button></div></form></div></div>
+<div id="modal-emp" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity">
+    <div class="glass-panel w-full max-w-sm rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-gold-500 shadow-2xl">
+        <h2 class="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest">Staff Registry</h2>
+        <form id="form-emp" onsubmit="handleEmpSave(event)" class="space-y-5">
+            <input type="hidden" id="emp-id"> 
+            <input type="text" id="emp-name" placeholder="Full Name" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500" required>
+            <div class="grid grid-cols-2 gap-4">
+                <input type="number" id="emp-sal" placeholder="Salary" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-black text-slate-900 dark:text-white outline-none focus:border-gold-500" required>
+                <input type="text" id="emp-mobile" placeholder="Mobile #" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none">
+            </div>
+            <input type="text" id="emp-cnic" placeholder="CNIC Number" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none">
+            <div class="flex gap-4 pt-2">
+                <button type="button" onclick="closeModal('modal-emp')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold transition-colors">Cancel</button>
+                <button type="submit" class="flex-1 py-4 bg-gold-500 hover:bg-gold-600 text-white rounded-xl font-black shadow-lg uppercase tracking-widest">Save</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <div id="modal-cat" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[150] flex items-center justify-center p-4 transition-opacity"><div class="glass-panel w-full max-w-xs rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-gold-500 shadow-2xl"><h2 class="text-xl font-black mb-6 text-slate-900 dark:text-white uppercase tracking-widest">Category</h2><form id="form-cat" onsubmit="handleCatSave(event)" class="space-y-5"><input type="hidden" id="cat-id"> <input type="text" id="cat-name" placeholder="Category Name" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500" required><div class="flex gap-4 pt-2"><button type="button" onclick="closeModal('modal-cat')" class="flex-1 py-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-xl font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors">Cancel</button><button type="submit" class="flex-1 py-4 bg-gold-500 hover:bg-gold-600 text-white rounded-xl font-black shadow-lg uppercase tracking-widest">Add</button></div></form></div></div>
 
@@ -997,6 +1063,7 @@
         if(id === 'units') loadUnits();
         if(id === 'payroll') loadPayroll();
         if(id === 'params') loadParams();
+        if(id === 'staff-payslips') loadStaffPayslips();
         if(id === 'settings') loadSettingsUI();
         if(id === 'users') loadUsers();
         if(id === 'elec' || id === 'maint') populateBillingDropdowns();
@@ -1362,7 +1429,7 @@
         document.getElementById('table-units').innerHTML = unitsCache.map(u => `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"><td class="px-8 py-5 font-black text-slate-900 dark:text-white text-base">${u.unitNumber}</td><td class="px-8 py-5 font-bold text-slate-700 dark:text-slate-300">${u.ownerName}</td><td class="px-8 py-5 font-mono text-slate-500 dark:text-slate-400 text-xs">${u.cnic || '-'}</td><td class="px-8 py-5 text-right space-x-1"><button onclick="editUnit(${u.id})" class="text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-pen"></i></button><button onclick="deleteUnit(${u.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
     }
     function editUnit(id) { const u = unitsCache.find(x => x.id === id); if(!u) return; document.getElementById('in-unit-id').value = u.id; document.getElementById('u-num').value = u.unitNumber; document.getElementById('u-owner').value = u.ownerName; document.getElementById('u-cnic').value = u.cnic; openModal('modal-unit'); }
-    async function handleUnitSave(e) { e.preventDefault(); const p = { unitNumber: document.getElementById('u-num').value, ownerName: document.getElementById('u-owner').value, cnic: document.getElementById('u-cnic').value }; const idVal = document.getElementById('in-unit-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/units`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Unit saved."); closeModal('modal-unit'); loadUnits(); }
+    async function handleUnitSave(e) { e.preventDefault(); const p = { unitNumber: document.getElementById('u-num').value, ownerName: document.getElementById('u-owner').value, cnic: document.getElementById('u-cnic').value, mobile: document.getElementById('u-mobile').value, address: document.getElementById('u-address').value }; const idVal = document.getElementById('in-unit-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/units`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Unit saved."); closeModal('modal-unit'); loadUnits(); }
     function deleteUnit(id) { askConfirm("Delete Unit", "Delete this property?", async () => { const res = await fetch(`${API_URL}/units/${id}`, { method: 'DELETE' }); if(res.ok) { showToast("Unit removed."); loadUnits(); } else { showToast(await res.text(), true); } }); }
 
     async function loadParams() {
@@ -1371,8 +1438,46 @@
         const cats = await (await fetch(`${API_URL}/categories`)).json(); catsCache = cats;
         document.getElementById('table-params-cat').innerHTML = cats.map(c => `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30"><td class="py-4 px-6 font-bold uppercase text-slate-700 dark:text-slate-300">${c.name}</td><td class="py-4 px-6 text-right"><button onclick="editCat(${c.id})" class="text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-500/10 p-2 rounded-xl transition-colors mx-1"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCat(${c.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
     }
+
+    async function loadStaffPayslips() {
+        const res = await fetch(`${API_URL}/salaries`);
+        rawSal = await res.json();
+        const tbody = document.getElementById('table-staff-payslips');
+        tbody.innerHTML = '';
+
+        rawSal.sort((a, b) => parseSafeDateLocal(b.paymentDate) - parseSafeDateLocal(a.paymentDate)).forEach(s => {
+            const row = document.createElement('tr');
+            row.className = "hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors";
+            row.innerHTML = `
+                <td class="py-4 px-6">
+                    <div class="font-black text-slate-900 dark:text-white">${s.employee?.name || 'Unknown'}</div>
+                    <div class="text-xs text-slate-400 font-mono">CNIC: ${s.employee?.cnic || 'N/A'}</div>
+                </td>
+                <td class="py-4 px-6 font-bold text-slate-600 dark:text-slate-400">${s.salaryMonth}</td>
+                <td class="py-4 px-6 font-medium text-slate-500">${parseSafeDateLocal(s.paymentDate).toLocaleDateString()}</td>
+                <td class="py-4 px-6 text-right font-black text-emerald-600">Rs. ${s.amount.toLocaleString()}</td>
+                <td class="py-4 px-6 text-center">
+                    <span class="px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-200 dark:border-emerald-800">DISBURSED</span>
+                </td>
+                <td class="py-4 px-6 text-right">
+                    <button onclick="printReceipt('SAL', ${s.id})" class="p-2 bg-slate-100 hover:bg-gold-500 hover:text-white text-slate-600 rounded-lg transition-all shadow-sm">
+                        <i class="fa-solid fa-print"></i>
+                    </button>
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    // Update showSection to trigger the load
+    const originalShowSection = showSection;
+    showSection = function(id) {
+        originalShowSection(id);
+        if(id === 'staff-payslips') loadStaffPayslips();
+    };
+
     function editEmp(id) { const e = staffCache.find(x => x.id === id); if(!e) return; document.getElementById('emp-id').value = e.id; document.getElementById('emp-name').value = e.name; document.getElementById('emp-sal').value = e.fixedSalary; openModal('modal-emp'); }
-    async function handleEmpSave(e) { e.preventDefault(); const p = { name: document.getElementById('emp-name').value, fixedSalary: parseFloat(document.getElementById('emp-sal').value) }; const idVal = document.getElementById('emp-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/employees`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Staff profile saved."); closeModal('modal-emp'); loadParams(); }
+    async function handleEmpSave(e) { e.preventDefault(); const p = { name: document.getElementById('emp-name').value, fixedSalary: parseFloat(document.getElementById('emp-sal').value), mobile: document.getElementById('emp-mobile').value, cnic: document.getElementById('emp-cnic').value }; const idVal = document.getElementById('emp-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/employees`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Staff profile saved."); closeModal('modal-emp'); loadParams(); }
     function deleteEmp(id) { askConfirm("Delete Staff", "Remove staff member?", async () => { const res = await fetch(`${API_URL}/employees/${id}`, { method: 'DELETE' }); if(res.ok) { showToast("Staff removed."); loadParams(); } else { showToast(await res.text(), true); } }); }
 
     function editCat(id) { const c = catsCache.find(x => x.id === id); if(!c) return; document.getElementById('cat-id').value = c.id; document.getElementById('cat-name').value = c.name; openModal('modal-cat'); }
@@ -1446,19 +1551,19 @@
         let bill = null;
         let title = "";
         let detailsHtml = "";
+        let documentTitle = ""; // New: added to handle dynamic titles like "SALARY SLIP"
 
-        const company = getSettings().companyName || "Takmeel Builders & Developers";
+        const company = getSettings().companyName || "Takmeel Builders & Developers"; [cite: 257]
         const printDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
         if(type === 'ELEC') {
-            bill = rawElec.find(b => b.id === id);
+            bill = rawElec.find(b => b.id === id); [cite: 467]
             if(!bill) return showToast("Bill not found", true);
-
             title = "Electricity Invoice";
-            let rate = bill.unitPrice || getSettings().elecRate || 35.0;
+            documentTitle = bill.status === 'PAID' ? "OFFICIAL RECEIPT" : "TAX INVOICE"; [cite: 484]
+            let rate = bill.unitPrice || getSettings().elecRate || 35.0; [cite: 257]
             let elecCost = (bill.consumed || 0) * rate;
 
-            // Cleaned up table rows to inherit the master print-table borders
             detailsHtml = `
                 <tr><td class="text-left">Meter Reading (Previous)</td><td class="text-right">${bill.prevReading || 0}</td></tr>
                 <tr><td class="text-left">Meter Reading (Current)</td><td class="text-right">${bill.currReading || 0}</td></tr>
@@ -1468,40 +1573,54 @@
                 <tr><td class="text-left">Fixed Charges</td><td class="text-right">Rs. ${(bill.fixedCharges || 0).toLocaleString()}</td></tr>
                 <tr><td class="text-left">Late Payment Penalty</td><td class="text-right">Rs. ${(bill.penalty || 0).toLocaleString()}</td></tr>
             `;
-        } else {
-            bill = rawMaint.find(b => b.id === id);
+        } else if (type === 'MAINT') {
+            bill = rawMaint.find(b => b.id === id); [cite: 477]
             if(!bill) return showToast("Bill not found", true);
-
             title = "Maintenance Invoice";
+            documentTitle = bill.status === 'PAID' ? "OFFICIAL RECEIPT" : "TAX INVOICE";
             detailsHtml = `
                 <tr><td class="text-left" style="font-weight:bold;">Monthly Maintenance Fee</td><td class="text-right" style="font-weight:bold;">Rs. ${(bill.amount || 0).toLocaleString()}</td></tr>
                 <tr><td class="text-left">Late Payment Penalty</td><td class="text-right">Rs. ${(bill.penalty || 0).toLocaleString()}</td></tr>
             `;
+        } 
+        /* --- START NEW CHANGE: STAFF PAYSLIP LOGIC --- */
+        else if (type === 'SAL') {
+            bill = rawSal.find(s => s.id === id); [cite: 256, 296]
+            if(!bill) return showToast("Salary record not found", true);
+            title = "Staff Payslip";
+            documentTitle = "OFFICIAL PAYSLIP";
+            detailsHtml = `
+                <tr><td class="text-left">Basic Salary Accrued</td><td class="text-right">Rs. ${(bill.amount || 0).toLocaleString()}</td></tr>
+                <tr><td class="text-left">Salary Month</td><td class="text-right">${bill.salaryMonth || 'N/A'}</td></tr>
+                <tr><td class="text-left">Payment Status</td><td class="text-right">Disbursed / Paid</td></tr>
+                <tr><td class="text-left">Remarks</td><td class="text-right">${bill.remarks || 'Monthly Payroll Processing'}</td></tr>
+            `;
         }
+        /* --- END NEW CHANGE --- */
 
         let isPaid = bill.status === 'PAID';
         let watermark = isPaid ?
-            `<div style="position:absolute; top:35%; left:25%; font-size:120px; color:rgba(16, 185, 129, 0.1); transform:rotate(-30deg); font-weight:900; z-index:0; border: 8px solid rgba(16, 185, 129, 0.1); padding: 20px; text-align:center; border-radius: 20px;">PAID</div>` :
+            `<div style="position:absolute; top:35%; left:25%; font-size:120px; color:rgba(16, 185, 129, 0.1); transform:rotate(-30deg); font-weight:900; z-index:0; border: 8px solid rgba(16, 185, 129, 0.1); padding: 20px; text-align:center; border-radius: 20px;">PAID</div>` : [cite: 483]
             `<div style="position:absolute; top:35%; left:15%; font-size:120px; color:rgba(225, 29, 72, 0.08); transform:rotate(-30deg); font-weight:900; z-index:0; border: 8px solid rgba(225, 29, 72, 0.08); padding: 20px; text-align:center; border-radius: 20px;">UNPAID</div>`;
 
-        let documentTitle = isPaid ? "OFFICIAL RECEIPT" : "TAX INVOICE";
-
-        let safeUnit = bill.unit ? bill.unit.unitNumber : '?';
-        let safeOwner = bill.unit ? bill.unit.ownerName : '?';
+        /* --- START NEW CHANGE: DYNAMIC HEADERS FOR STAFF VS UNITS --- */
+        let safeUnit = type === 'SAL' ? "Staff ID: " + (bill.employee?.id || 'N/A') : (bill.unit ? bill.unit.unitNumber : '?');
+        let safeOwner = type === 'SAL' ? (bill.employee?.name || 'N/A') : (bill.unit ? bill.unit.ownerName : '?');
+        /* --- END NEW CHANGE --- */
 
         const parseDate = (d) => {
             if (!d) return new Date();
-            if (Array.isArray(d)) return new Date(d[0], d[1] - 1, d[2]);
+            if (Array.isArray(d)) return new Date(d[0], d[1] - 1, d[2]); [cite: 486]
             return new Date(d);
         };
-        let safeDate = parseDate(bill.createdAt).toLocaleDateString('en-US');
+        
+        // New: Support for paymentDate (Staff) vs createdAt (Units)
+        let safeDate = parseDate(type === 'SAL' ? bill.paymentDate : bill.createdAt).toLocaleDateString('en-US');
 
-        // Fully integrated into the standard document theme
         document.getElementById('print-container').innerHTML = `
             <div class="print-wrapper" style="position:relative; background: white;">
-
-                <div class="print-header-box">
-                    <h1 style="text-transform: uppercase;">${company}</h1>
+                <div class="print-header-box" style="background-color: #1e293b !important; color: #ffffff !important; padding: 30px; text-align: center; border-bottom: 4px solid #B8904D !important;">
+                    <h1 style="text-transform: uppercase; color: #ffffff !important; letter-spacing: 3px;">${company}</h1>
                     <h2 style="font-size: 20px; font-weight: 600; margin: 10px 0 4px 0;">${documentTitle}</h2>
                     <p style="font-size: 16px; font-weight: 600; margin: 0;">${title}</p>
                     <p style="font-size: 12px; font-style: italic; margin: 6px 0 0 0; color: #B8904D;">(Amounts in PKR)</p>
@@ -1511,32 +1630,28 @@
                     ${watermark}
                     <div style="display:flex; justify-content: space-between; margin-bottom: 30px;">
                         <div>
-                            <p style="margin: 0 0 5px 0; font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold;">Billed To:</p>
+                            <p style="margin: 0 0 5px 0; font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold;">Entity Details:</p>
                             <h3 style="margin: 0 0 5px 0; font-size: 18px; font-weight: 900; color: #1e293b;">${safeOwner}</h3>
-                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Unit: ${safeUnit}</p>
+                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">${safeUnit}</p>
                         </div>
                         <div style="text-align: right;">
-                            <p style="margin: 0 0 5px 0; font-size: 12px; color: #64748b; text-transform: uppercase; font-weight: bold;">Document Details:</p>
-                            <p style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #1e293b;">No: ${type}-${bill.id}</p>
-                            <p style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #1e293b;">Billing Month: ${bill.month || 'N/A'}</p>
-                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Issue Date: ${safeDate}</p>
+                            <p style="margin: 0 0 5px 0; font-size: 14px; font-weight: 600; color: #1e293b;">Ref: ${type}-${bill.id}</p>
+                            <p style="margin: 0; font-size: 14px; font-weight: 600; color: #1e293b;">Date: ${safeDate}</p>
                         </div>
                     </div>
 
-                    <table class="print-table">
+                    <table class="print-table" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
                         <thead>
-                            <tr>
-                                <th style="text-align: left; width: 70%; border-right: 1px solid #cbd5e1;">DESCRIPTION</th>
-                                <th style="text-align: right; width: 30%;">AMOUNT</th>
+                            <tr style="background-color: #f8fafc !important;">
+                                <th style="text-align: left; width: 70%; border: 1px solid #cbd5e1; padding: 12px 15px;">DESCRIPTION</th>
+                                <th style="text-align: right; width: 30%; border: 1px solid #cbd5e1; padding: 12px 15px;">AMOUNT</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            ${detailsHtml}
-                        </tbody>
+                        <tbody>${detailsHtml}</tbody>
                         <tfoot>
-                            <tr>
-                                <td class="text-right" style="font-weight: 900; text-transform: uppercase; border-right: 1px solid #cbd5e1;">Total Amount Payable</td>
-                                <td class="text-right" style="font-weight: 900; font-size: 16px; color: #1e293b;">Rs. ${(bill.total || 0).toLocaleString()}</td>
+                            <tr style="background-color: #f1f5f9 !important;">
+                                <td class="text-right" style="font-weight: 900; text-transform: uppercase; border: 1px solid #cbd5e1; padding: 12px 15px;">Total</td>
+                                <td class="text-right" style="font-weight: 900; font-size: 16px; color: #1e293b; border: 1px solid #cbd5e1; padding: 12px 15px;">Rs. ${(bill.total || bill.amount || 0).toLocaleString()}</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -1547,7 +1662,7 @@
                             <p style="font-size: 12px; font-weight: bold; color: #64748b; text-transform: uppercase;">Authorized Signature</p>
                         </div>
                         <div style="width: 40%; text-align:center; display: flex; flex-direction: column; justify-content: flex-end;">
-                            <p style="font-size: 11px; font-style: italic; color: #64748b; margin: 0;">Generated automatically by Takmeel ERP</p>
+                            <p style="font-size: 11px; font-style: italic; color: #64748b; margin: 0;">Generated by Takmeel ERP</p>
                             <p style="font-size: 11px; font-style: italic; color: #64748b; margin: 0;">Printed on ${printDate}</p>
                         </div>
                     </div>
