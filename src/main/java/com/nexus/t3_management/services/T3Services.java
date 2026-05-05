@@ -323,34 +323,37 @@ public class T3Services {
     @Transactional
     public ResponseEntity<byte[]> generateBackup() throws Exception {
         String os = System.getProperty("os.name").toLowerCase();
-        
-        // Use generic command names for Linux/Alpine compatibility
-        String dumpPath = os.contains("win")
-                ? "C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe"
-                : "mysqldump";
+        String dumpPath = os.contains("win") ? "mysqldump.exe" : "mysqldump";
 
-        String dbUser = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "root";
-        String dbPass = System.getenv("DB_PASS") != null ? System.getenv("DB_PASS") : "Sk311005*";
-        String dbName = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME") : "t3_db";
+        // Connection details extracted from your Aiven logs
+        String dbHost = System.getenv("DB_HOST") != null ? System.getenv("DB_HOST") : "t3management-t3management.l.aivencloud.com";
+        String dbPort = System.getenv("DB_PORT") != null ? System.getenv("DB_PORT") : "17112";
+        String dbUser = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "avnadmin";
+        String dbPass = System.getenv("DB_PASS") != null ? System.getenv("DB_PASS") : "AVNS_2LJQb2vVg00AmioR4fB";
+        String dbName = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME") : "defaultdb";
 
         String[] command;
         if (os.contains("win")) {
-            command = new String[]{dumpPath, "-u", dbUser, "-p" + dbPass, dbName};
+            command = new String[]{dumpPath, "-h", dbHost, "-P", dbPort, "-u", dbUser, "-p" + dbPass, dbName};
         } else {
-            // Protect the '*' in the password by wrapping it in single quotes
-            String cmdString = String.format("%s -u %s -p'%s' %s", dumpPath, dbUser, dbPass, dbName);
+            // Added --ssl-mode=REQUIRED as mandated by Aiven logs
+            String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl-mode=REQUIRED %s", 
+                                dumpPath, dbHost, dbPort, dbUser, dbPass, dbName);
             command = new String[]{"/bin/sh", "-c", cmdString};
         }
 
         Process process = Runtime.getRuntime().exec(command);
 
-        try (java.io.InputStream is = process.getInputStream()) {
+        try (java.io.InputStream is = process.getInputStream();
+             java.io.InputStream es = process.getErrorStream()) {
+             
             byte[] data = is.readAllBytes();
             if (data.length == 0) {
-                java.io.InputStream es = process.getErrorStream();
-                String error = new String(es.readAllBytes());
-                throw new RuntimeException("Backup failed: " + error);
+                String errorMsg = new String(es.readAllBytes());
+                System.err.println("CRITICAL BACKUP ERROR: " + errorMsg);
+                throw new RuntimeException("MySQL Dump Failed: " + errorMsg);
             }
+            
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.setContentDispositionFormData("attachment", "t3_backup.sql");
             headers.setContentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM);
@@ -361,21 +364,20 @@ public class T3Services {
     @Transactional
     public void restoreDatabase(org.springframework.web.multipart.MultipartFile file) throws Exception {
         String os = System.getProperty("os.name").toLowerCase();
-        
-        String mysqlPath = os.contains("win")
-                ? "C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql.exe"
-                : "mysql";
+        String mysqlPath = os.contains("win") ? "mysql.exe" : "mysql";
 
-        String dbUser = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "root";
-        String dbPass = System.getenv("DB_PASS") != null ? System.getenv("DB_PASS") : "Sk311005*";
-        String dbName = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME") : "t3_db";
+        String dbHost = System.getenv("DB_HOST") != null ? System.getenv("DB_HOST") : "t3management-t3management.l.aivencloud.com";
+        String dbPort = System.getenv("DB_PORT") != null ? System.getenv("DB_PORT") : "17112";
+        String dbUser = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "avnadmin";
+        String dbPass = System.getenv("DB_PASS") != null ? System.getenv("DB_PASS") : "AVNS_2LJQb2vVg00AmioR4fB";
+        String dbName = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME") : "defaultdb";
 
         String[] command;
         if (os.contains("win")) {
-            command = new String[]{mysqlPath, "-u", dbUser, "-p" + dbPass, dbName};
+            command = new String[]{mysqlPath, "-h", dbHost, "-P", dbPort, "-u", dbUser, "-p" + dbPass, dbName};
         } else {
-            // Protect the '*' in the password
-            String cmdString = String.format("%s -u %s -p'%s' %s", mysqlPath, dbUser, dbPass, dbName);
+            String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl-mode=REQUIRED %s", 
+                                mysqlPath, dbHost, dbPort, dbUser, dbPass, dbName);
             command = new String[]{"/bin/sh", "-c", cmdString};
         }
 
@@ -390,6 +392,7 @@ public class T3Services {
         if (exitCode != 0) {
             java.io.InputStream es = process.getErrorStream();
             String error = new String(es.readAllBytes());
+            System.err.println("CRITICAL RESTORE ERROR: " + error);
             throw new RuntimeException("Restore failed: " + error);
         }
     }
