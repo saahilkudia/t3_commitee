@@ -1,6 +1,10 @@
 # We use Temurin JDK 21 because it's stable and professional
 FROM eclipse-temurin:21-jdk-alpine
 
+# NEW: Install mysql-client and bash. 
+# This is required for the backup and restore functions to work on Render/Linux.
+RUN apk update && apk add --no-cache mysql-client bash
+
 # Set the working directory
 WORKDIR /app
 

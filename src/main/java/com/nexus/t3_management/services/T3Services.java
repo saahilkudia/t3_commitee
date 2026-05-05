@@ -322,24 +322,24 @@ public class T3Services {
 
     @Transactional
     public ResponseEntity<byte[]> generateBackup() throws Exception {
-        // 1. Detect OS and set paths
         String os = System.getProperty("os.name").toLowerCase();
+        
+        // Use generic command names for Linux/Alpine compatibility
         String dumpPath = os.contains("win")
                 ? "C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysqldump.exe"
-                : "/usr/bin/mysqldump";
+                : "mysqldump";
 
-        // 2. Get credentials from Environment (Render) or use Defaults (Local)
         String dbUser = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "root";
         String dbPass = System.getenv("DB_PASS") != null ? System.getenv("DB_PASS") : "Sk311005*";
         String dbName = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME") : "t3_db";
 
-        // 3. Build command
-        // Note: Linux (Render) needs /bin/sh to handle passwords with special characters safely
         String[] command;
         if (os.contains("win")) {
             command = new String[]{dumpPath, "-u", dbUser, "-p" + dbPass, dbName};
         } else {
-            command = new String[]{"/bin/sh", "-c", dumpPath + " -u " + dbUser + " -p'" + dbPass + "' " + dbName};
+            // Protect the '*' in the password by wrapping it in single quotes
+            String cmdString = String.format("%s -u %s -p'%s' %s", dumpPath, dbUser, dbPass, dbName);
+            command = new String[]{"/bin/sh", "-c", cmdString};
         }
 
         Process process = Runtime.getRuntime().exec(command);
@@ -349,7 +349,7 @@ public class T3Services {
             if (data.length == 0) {
                 java.io.InputStream es = process.getErrorStream();
                 String error = new String(es.readAllBytes());
-                throw new RuntimeException("MySQL Error: " + error);
+                throw new RuntimeException("Backup failed: " + error);
             }
             org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
             headers.setContentDispositionFormData("attachment", "t3_backup.sql");
@@ -360,29 +360,30 @@ public class T3Services {
 
     @Transactional
     public void restoreDatabase(org.springframework.web.multipart.MultipartFile file) throws Exception {
-        // 1. Detect OS and set paths
         String os = System.getProperty("os.name").toLowerCase();
+        
         String mysqlPath = os.contains("win")
                 ? "C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin\\mysql.exe"
-                : "/usr/bin/mysql";
+                : "mysql";
 
-        // 2. Get credentials
         String dbUser = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "root";
         String dbPass = System.getenv("DB_PASS") != null ? System.getenv("DB_PASS") : "Sk311005*";
         String dbName = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME") : "t3_db";
 
-        // 3. Build command
         String[] command;
         if (os.contains("win")) {
             command = new String[]{mysqlPath, "-u", dbUser, "-p" + dbPass, dbName};
         } else {
-            command = new String[]{"/bin/sh", "-c", mysqlPath + " -u " + dbUser + " -p'" + dbPass + "' " + dbName};
+            // Protect the '*' in the password
+            String cmdString = String.format("%s -u %s -p'%s' %s", mysqlPath, dbUser, dbPass, dbName);
+            command = new String[]{"/bin/sh", "-c", cmdString};
         }
 
         Process process = Runtime.getRuntime().exec(command);
 
         try (java.io.OutputStream osStream = process.getOutputStream()) {
             osStream.write(file.getBytes());
+            osStream.flush();
         }
 
         int exitCode = process.waitFor();
