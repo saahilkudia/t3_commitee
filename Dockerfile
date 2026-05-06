@@ -1,31 +1,31 @@
-# We use Temurin JDK 21 because it's stable and professional
+# Use Temurin JDK 21 Alpine as the base
 FROM eclipse-temurin:21-jdk-alpine
 
-# NEW: Install mysql-client and bash
-# This physically puts the 'mysqldump' and 'mysql' tools into your Render server
+# NEW: Install mysql-client and bash[cite: 1]
+# This provides the actual 'mysqldump' and 'mysql' files needed by the code.
 RUN apk update && apk add --no-cache mysql-client bash
 
-# Set the working directory
+# Set the working directory[cite: 1]
 WORKDIR /app
 
-# Copy the maven wrapper and pom file
+# Copy the maven wrapper and build files[cite: 1]
 COPY .mvn/ .mvn
 COPY mvnw pom.xml ./
 
-# Fix line endings for Linux
+# Fix line endings for Linux[cite: 1]
 RUN tr -d '\r' < mvnw > mvnw_unix && mv mvnw_unix mvnw
 RUN chmod +x mvnw
 
-# Download dependencies
+# Download dependencies[cite: 1]
 RUN ./mvnw dependency:go-offline
 
-# Copy the source code and build the JAR
+# Copy the source and build[cite: 1]
 COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
-# Find the built jar and rename it
+# Find and rename the JAR[cite: 1]
 RUN mv target/*.jar app.jar
 
-# Run the app
+# Run the app[cite: 1]
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]

@@ -307,9 +307,10 @@
                         <i class="fa-solid fa-database mr-2"></i>Database Maintenance
                     </h3>
                     <div class="flex flex-wrap gap-4">
-                        <a href="/api/system/backup" class="bg-slate-800 dark:bg-slate-700 text-white px-6 py-4 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-slate-900 transition-all shadow-md">
+                        <!-- FIXED: Button instead of <a> to allow error catching -->
+                        <button type="button" onclick="handleDatabaseBackup(this)" class="bg-slate-800 dark:bg-slate-700 text-white px-6 py-4 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-slate-900 transition-all shadow-md">
                             <i class="fa-solid fa-download"></i> Download SQL Backup
-                        </a>
+                        </button>
                         <button type="button" onclick="document.getElementById('restore-file').click()" class="bg-rose-600 text-white px-6 py-4 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 hover:bg-rose-700 transition-all shadow-md">
                             <i class="fa-solid fa-upload"></i> Restore from File
                         </button>
@@ -2148,6 +2149,46 @@
                 }
             }
         );
+    }
+
+    // --- DATABASE MAINTENANCE HANDLERS ---
+    async function handleDatabaseBackup(btn) {
+        const originalContent = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+        btn.disabled = true;
+
+        try {
+            // We call the API we fixed in T3Services.java
+            const response = await fetch(`${API_URL}/system/backup`);
+            
+            if (!response.ok) {
+                // If the server returns an error (400, 500, etc.), we catch the text
+                const culprit = await response.text();
+                // This is the prompt that tells you exactly what failed
+                alert("BACKUP FAILED\n\nCulprit: " + culprit);
+                showToast("Backup failed. Check the alert for details.", true);
+            } else {
+                // If the error is fixed, this block executes
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                // Sets the filename for the download
+                a.download = `takmeel_backup_${new Date().toISOString().split('T')[0]}.sql`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                showToast("Backup downloaded successfully!");
+            }
+        } catch (error) {
+            // This catches network-level failures (e.g., Render server is down)
+            showToast("Network Error: Could not reach server.", true);
+            alert("System Error: " + error.message);
+        } finally {
+            // Reset the button state
+            btn.innerHTML = originalContent;
+            btn.disabled = false;
+        }
     }
 
     window.onload = () => {

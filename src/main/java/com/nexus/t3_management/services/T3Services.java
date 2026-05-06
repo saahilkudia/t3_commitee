@@ -321,79 +321,104 @@ public class T3Services {
     public List<BuildingExpense> getAllExpenses() { return expenseRepo.findAll(); }
 
     @Transactional
-    public ResponseEntity<byte[]> generateBackup() throws Exception {
-        String os = System.getProperty("os.name").toLowerCase();
-        String dumpPath = os.contains("win") ? "mysqldump.exe" : "mysqldump";
+    public ResponseEntity<?> generateBackup() {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            String dumpPath = os.contains("win") ? "mysqldump.exe" : "mysqldump";
 
-        // Connection details precisely matched to your Aiven logs
-        String dbHost = System.getenv("DB_HOST") != null ? System.getenv("DB_HOST") : "t3management-t3management.l.aivencloud.com";
-        String dbPort = System.getenv("DB_PORT") != null ? System.getenv("DB_PORT") : "17112";
-        String dbUser = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "avnadmin";
-        String dbPass = System.getenv("DB_PASS") != null ? System.getenv("DB_PASS") : "AVNS_2LJQb2vVg00AmioR4fB";
-        String dbName = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME") : "defaultdb";
+            // Environment Variables from Render
+            String dbHost = System.getenv("DB_HOST");
+            String dbPort = System.getenv("DB_PORT");
+            String dbUser = System.getenv("DB_USER");
+            String dbPass = System.getenv("DB_PASS");
+            String dbName = System.getenv("DB_NAME");
 
-        String[] command;
-        if (os.contains("win")) {
-            command = new String[]{dumpPath, "-h", dbHost, "-P", dbPort, "-u", dbUser, "-p" + dbPass, dbName};
-        } else {
-            // Added --column-statistics=0 and --ssl-mode=REQUIRED for Aiven compatibility
-            String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl-mode=REQUIRED --column-statistics=0 %s", 
-                                dumpPath, dbHost, dbPort, dbUser, dbPass, dbName);
-            command = new String[]{"/bin/sh", "-c", cmdString};
-        }
-
-        Process process = Runtime.getRuntime().exec(command);
-
-        try (java.io.InputStream is = process.getInputStream();
-             java.io.InputStream es = process.getErrorStream()) {
-             
-            byte[] data = is.readAllBytes();
-            if (data.length == 0) {
-                String errorMsg = new String(es.readAllBytes());
-                System.err.println("DATABASE BACKUP FAILURE: " + errorMsg); // This will show in Render logs
-                throw new RuntimeException("MySQL Dump Failed: " + errorMsg);
+            // Safety check for Environment Variables
+            if (dbHost == null || dbPass == null) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Missing Environment Variables: Ensure DB_HOST and DB_PASS are set in Render.");
             }
-            
-            org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
-            headers.setContentDispositionFormData("attachment", "t3_backup.sql");
-            headers.setContentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM);
-            return new ResponseEntity<>(data, headers, org.springframework.http.HttpStatus.OK);
+
+            String[] command;
+            if (os.contains("win")) {
+                command = new String[]{dumpPath, "-h", dbHost, "-P", dbPort, "-u", dbUser, "-p" + dbPass, dbName};
+            } else {
+                // Protects '*' and handles Aiven's SSL requirement
+                String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl-mode=REQUIRED --column-statistics=0 %s", 
+                                    dumpPath, dbHost, dbPort, dbUser, dbPass, dbName);
+                command = new String[]{"/bin/sh", "-c", cmdString};
+            }
+
+            Process process = Runtime.getRuntime().exec(command);
+
+            // Capture both Output (the SQL) and Error (the Culprit)
+            try (java.io.InputStream is = process.getInputStream();
+                 java.io.InputStream es = process.getErrorStream()) {
+                 
+                byte[] data = is.readAllBytes();
+                byte[] errorData = es.readAllBytes();
+
+                if (data.length == 0 && errorData.length > 0) {
+                    String errorMsg = new String(errorData);
+                    System.err.println("DATABASE BACKUP CULPRIT: " + errorMsg);
+                    // Returns the exact error to your frontend instead of a 500 error
+                    return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("MySQL Error: " + errorMsg);
+                }
+                
+                if (data.length == 0) {
+                    return ResponseEntity.status(HttpStatus.NO_CONTENT).body("Backup generated an empty file.");
+                }
+
+                org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+                headers.setContentDispositionFormData("attachment", "t3_backup.sql");
+                headers.setContentType(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM);
+                return new ResponseEntity<>(data, headers, org.springframework.http.HttpStatus.OK);
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("System Error: " + e.getMessage());
         }
     }
 
     @Transactional
-    public void restoreDatabase(org.springframework.web.multipart.MultipartFile file) throws Exception {
-        String os = System.getProperty("os.name").toLowerCase();
-        String mysqlPath = os.contains("win") ? "mysql.exe" : "mysql";
+    public ResponseEntity<?> restoreDatabase(org.springframework.web.multipart.MultipartFile file) {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            String mysqlPath = os.contains("win") ? "mysql.exe" : "mysql";
 
-        String dbHost = System.getenv("DB_HOST") != null ? System.getenv("DB_HOST") : "t3management-t3management.l.aivencloud.com";
-        String dbPort = System.getenv("DB_PORT") != null ? System.getenv("DB_PORT") : "17112";
-        String dbUser = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "avnadmin";
-        String dbPass = System.getenv("DB_PASS") != null ? System.getenv("DB_PASS") : "AVNS_2LJQb2vVg00AmioR4fB";
-        String dbName = System.getenv("DB_NAME") != null ? System.getenv("DB_NAME") : "defaultdb";
+            String dbHost = System.getenv("DB_HOST");
+            String dbPort = System.getenv("DB_PORT");
+            String dbUser = System.getenv("DB_USER");
+            String dbPass = System.getenv("DB_PASS");
+            String dbName = System.getenv("DB_NAME");
 
-        String[] command;
-        if (os.contains("win")) {
-            command = new String[]{mysqlPath, "-h", dbHost, "-P", dbPort, "-u", dbUser, "-p" + dbPass, dbName};
-        } else {
-            String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl-mode=REQUIRED %s", 
-                                mysqlPath, dbHost, dbPort, dbUser, dbPass, dbName);
-            command = new String[]{"/bin/sh", "-c", cmdString};
-        }
+            String[] command;
+            if (os.contains("win")) {
+                command = new String[]{mysqlPath, "-h", dbHost, "-P", dbPort, "-u", dbUser, "-p" + dbPass, dbName};
+            } else {
+                String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl-mode=REQUIRED %s", 
+                                    mysqlPath, dbHost, dbPort, dbUser, dbPass, dbName);
+                command = new String[]{"/bin/sh", "-c", cmdString};
+            }
 
-        Process process = Runtime.getRuntime().exec(command);
+            Process process = Runtime.getRuntime().exec(command);
 
-        try (java.io.OutputStream osStream = process.getOutputStream()) {
-            osStream.write(file.getBytes());
-            osStream.flush();
-        }
+            try (java.io.OutputStream osStream = process.getOutputStream()) {
+                osStream.write(file.getBytes());
+                osStream.flush();
+            }
 
-        int exitCode = process.waitFor();
-        if (exitCode != 0) {
-            java.io.InputStream es = process.getErrorStream();
-            String error = new String(es.readAllBytes());
-            System.err.println("DATABASE RESTORE FAILURE: " + error);
-            throw new RuntimeException("Restore failed: " + error);
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+                java.io.InputStream es = process.getErrorStream();
+                String error = new String(es.readAllBytes());
+                return ResponseEntity.status(HttpStatus.BAD_GATEWAY).body("Restore Culprit: " + error);
+            }
+            return ResponseEntity.ok("Database restored successfully!");
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("System Error: " + e.getMessage());
         }
     }
 }
