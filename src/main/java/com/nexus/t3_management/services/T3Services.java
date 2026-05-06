@@ -325,7 +325,7 @@ public class T3Services {
         String os = System.getProperty("os.name").toLowerCase();
         String dumpPath = os.contains("win") ? "mysqldump.exe" : "mysqldump";
 
-        // Connection details extracted from your Aiven logs
+        // Connection details precisely matched to your Aiven logs
         String dbHost = System.getenv("DB_HOST") != null ? System.getenv("DB_HOST") : "t3management-t3management.l.aivencloud.com";
         String dbPort = System.getenv("DB_PORT") != null ? System.getenv("DB_PORT") : "17112";
         String dbUser = System.getenv("DB_USER") != null ? System.getenv("DB_USER") : "avnadmin";
@@ -336,8 +336,8 @@ public class T3Services {
         if (os.contains("win")) {
             command = new String[]{dumpPath, "-h", dbHost, "-P", dbPort, "-u", dbUser, "-p" + dbPass, dbName};
         } else {
-            // Added --ssl-mode=REQUIRED as mandated by Aiven logs
-            String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl-mode=REQUIRED %s", 
+            // Added --column-statistics=0 and --ssl-mode=REQUIRED for Aiven compatibility
+            String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl-mode=REQUIRED --column-statistics=0 %s", 
                                 dumpPath, dbHost, dbPort, dbUser, dbPass, dbName);
             command = new String[]{"/bin/sh", "-c", cmdString};
         }
@@ -350,7 +350,7 @@ public class T3Services {
             byte[] data = is.readAllBytes();
             if (data.length == 0) {
                 String errorMsg = new String(es.readAllBytes());
-                System.err.println("CRITICAL BACKUP ERROR: " + errorMsg);
+                System.err.println("DATABASE BACKUP FAILURE: " + errorMsg); // This will show in Render logs
                 throw new RuntimeException("MySQL Dump Failed: " + errorMsg);
             }
             
@@ -392,7 +392,7 @@ public class T3Services {
         if (exitCode != 0) {
             java.io.InputStream es = process.getErrorStream();
             String error = new String(es.readAllBytes());
-            System.err.println("CRITICAL RESTORE ERROR: " + error);
+            System.err.println("DATABASE RESTORE FAILURE: " + error);
             throw new RuntimeException("Restore failed: " + error);
         }
     }
