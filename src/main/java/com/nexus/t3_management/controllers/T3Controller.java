@@ -266,22 +266,24 @@ public class T3Controller {
 
     // New: Trigger SQL Backup Download
     @GetMapping("/system/backup")
-    public ResponseEntity<byte[]> downloadBackup() {
+    public ResponseEntity<?> generateBackup() {
         try {
-            return t3Service.generateBackup();
+            // The service now returns the file OR the specific Aiven/Linux error
+            return t3Service.generateBackup(); 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            // This is a 'System Error' fallback if the Java code itself crashes
+            return ResponseEntity.status(500).body("Controller Error (Backup): " + e.getMessage());
         }
     }
 
-    // New: Restore from uploaded SQL File
     @PostMapping("/system/restore")
-    public ResponseEntity<String> restoreDatabase(@RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+    public ResponseEntity<?> restoreDatabase(@RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
         try {
-            t3Service.restoreDatabase(file);
-            return ResponseEntity.ok("Database Restored Successfully.");
+            // The service handles the 'apk' tools and shell execution
+            return t3Service.restoreDatabase(file);
         } catch (Exception e) {
-            return ResponseEntity.status(500).body("Restore failed: " + e.getMessage());
+            // This catches file-upload or unexpected Java interruptions
+            return ResponseEntity.status(500).body("Controller Error (Restore): " + e.getMessage());
         }
     }
 }
