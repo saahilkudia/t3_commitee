@@ -344,7 +344,8 @@ public class T3Services {
                 command = new String[]{dumpPath, "-h", dbHost, "-P", dbPort, "-u", dbUser, "-p" + dbPass, dbName};
             } else {
                 // Protects '*' and handles Aiven's SSL requirement
-                String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl-mode=REQUIRED --column-statistics=0 %s", 
+                // Updated command for MariaDB/MySQL compatibility in Alpine Linux
+                String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl %s", 
                                     dumpPath, dbHost, dbPort, dbUser, dbPass, dbName);
                 command = new String[]{"/bin/sh", "-c", cmdString};
             }
@@ -396,7 +397,8 @@ public class T3Services {
             if (os.contains("win")) {
                 command = new String[]{mysqlPath, "-h", dbHost, "-P", dbPort, "-u", dbUser, "-p" + dbPass, dbName};
             } else {
-                String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl-mode=REQUIRED %s", 
+                // Updated restore command for Alpine compatibility
+                String cmdString = String.format("%s -h %s -P %s -u %s -p'%s' --ssl %s", 
                                     mysqlPath, dbHost, dbPort, dbUser, dbPass, dbName);
                 command = new String[]{"/bin/sh", "-c", cmdString};
             }
