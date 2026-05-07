@@ -217,7 +217,7 @@ public class T3Controller {
     @PostMapping("/bills/waive")
     public ResponseEntity<String> waiveBillPenalty(@RequestParam String type, @RequestParam Long id) {
         try {
-            t3Services.waivePenalty(type, id);
+            t3Service.waivePenalty(type, id);
             return ResponseEntity.ok("Penalty successfully waived and ledger updated.");
         } catch (Exception e) {
             // This catches the "Cannot waive settled bill" or "Bill not found" errors
