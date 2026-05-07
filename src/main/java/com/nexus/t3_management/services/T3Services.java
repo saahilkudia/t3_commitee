@@ -317,6 +317,42 @@ public class T3Services {
         }
     }
 
+    @Transactional
+    public void waivePenalty(String type, Long id) {
+        if ("ELEC".equals(type)) {
+            ElectricityBill bill = elecRepo.findById(id).orElseThrow();
+            if ("PAID".equals(bill.getStatus())) throw new RuntimeException("Cannot waive settled bill");
+            
+            double penaltyAmount = bill.getPenalty() != null ? bill.getPenalty() : 0.0;
+            bill.setPenalty(0.0);
+            bill.setTotal(bill.getTotal() - penaltyAmount);
+            elecRepo.save(bill);
+            
+            postWaiverJV("Electricity Penalty Waiver Unit " + bill.getUnit().getUnitNumber(), penaltyAmount);
+            
+        } else if ("MAINT".equals(type)) {
+            MaintenanceBill bill = maintRepo.findById(id).orElseThrow();
+            if ("PAID".equals(bill.getStatus())) throw new RuntimeException("Cannot waive settled bill");
+            
+            double penaltyAmount = bill.getPenalty() != null ? bill.getPenalty() : 0.0;
+            bill.setPenalty(0.0);
+            bill.setTotal(bill.getTotal() - penaltyAmount);
+            maintRepo.save(bill);
+            
+            postWaiverJV("Maint Penalty Waiver Unit " + bill.getUnit().getUnitNumber(), penaltyAmount);
+        }
+    }
+
+    private void postWaiverJV(String memo, double amount) {
+        if (amount <= 0) return;
+        JournalVoucher jv = new JournalVoucher();
+        jv.setVoucherType("JV");
+        jv.setMemo(memo);
+        jv.getLines().add(accountingEngine.createLine(getSysAcc("REV"), amount, 0.0, "Revenue Reversed"));
+        jv.getLines().add(accountingEngine.createLine(getSysAcc("AR"), 0.0, amount, "A/R Reduced"));
+        accountingEngine.postVoucher(jv);
+    }
+
     public List<StaffSalary> getAllSalaries() { return salaryRepo.findAll(); }
     public List<BuildingExpense> getAllExpenses() { return expenseRepo.findAll(); }
 
