@@ -14,6 +14,7 @@ public class Unit {
     @Column(unique = true)
     private String unitNumber;
     private String ownerName;
+    private String ownerEmail;
     private String cnic;
     private String mobile;
     private String address;

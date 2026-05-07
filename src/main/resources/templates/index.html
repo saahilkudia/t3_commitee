@@ -918,6 +918,7 @@
             <div class="grid grid-cols-2 gap-4">
                 <input type="text" id="u-cnic" placeholder="CNIC Number" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none">
                 <input type="text" id="u-mobile" placeholder="Mobile #" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none">
+                <input type="email" id="unit-email" placeholder="Email Address" class="w-full p-4 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl font-bold outline-none focus:border-gold-500 text-slate-900 dark:text-white">
             </div>
             <input type="text" id="u-address" placeholder="Physical Address" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-slate-900 dark:text-white outline-none">
             <div class="flex gap-4 pt-4">
@@ -1544,7 +1545,7 @@
         }
 
     function editUnit(id) { const u = unitsCache.find(x => x.id === id); if(!u) return; document.getElementById('in-unit-id').value = u.id; document.getElementById('u-num').value = u.unitNumber; document.getElementById('u-owner').value = u.ownerName; document.getElementById('u-cnic').value = u.cnic; openModal('modal-unit'); }
-    async function handleUnitSave(e) { e.preventDefault(); const p = { unitNumber: document.getElementById('u-num').value, ownerName: document.getElementById('u-owner').value, cnic: document.getElementById('u-cnic').value, mobile: document.getElementById('u-mobile').value, address: document.getElementById('u-address').value }; const idVal = document.getElementById('in-unit-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/units`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Unit saved."); closeModal('modal-unit'); loadUnits(); }
+    async function handleUnitSave(e) { e.preventDefault(); const p = { unitNumber: document.getElementById('u-num').value, ownerName: document.getElementById('u-owner').value, cnic: document.getElementById('u-cnic').value, mobile: document.getElementById('u-mobile').value, address: document.getElementById('u-address').value, ownerEmail: document.getElementById('unit-email').value }; const idVal = document.getElementById('in-unit-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/units`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Unit saved."); closeModal('modal-unit'); loadUnits(); }
     function deleteUnit(id) { askConfirm("Delete Unit", "Delete this property?", async () => { const res = await fetch(`${API_URL}/units/${id}`, { method: 'DELETE' }); if(res.ok) { showToast("Unit removed."); loadUnits(); } else { showToast(await res.text(), true); } }); }
 
     function viewUnitDetail(id) {
@@ -1555,6 +1556,7 @@
         document.getElementById('det-owner').innerText = u.ownerName || 'Not Assigned';
         document.getElementById('det-cnic').innerText = u.cnic || 'N/A';
         document.getElementById('det-mobile').innerText = u.mobile || 'N/A';
+        ocument.getElementById('u-email').value = u.email || '';
         document.getElementById('det-address').innerText = u.address || 'No address provided.';
         
         // Format the registration date safely from the backend array
