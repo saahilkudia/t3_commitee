@@ -154,6 +154,7 @@
     <nav class="flex-1 py-6 space-y-1 overflow-y-auto overflow-x-hidden custom-scrollbar text-slate-600 dark:text-slate-400">
         <button onclick="showSection('dashboard')" data-tab="dashboard" id="nav-dashboard" class="nav-link active"><i class="fa-solid fa-chart-pie w-6 text-center"></i> Dashboard</button>
         <button onclick="showSection('units')" data-tab="units" id="nav-units" class="nav-link"><i class="fa-solid fa-building w-6 text-center"></i> Unit Profiles</button>
+        <button onclick="showSection('transfer')" data-tab="transfer" id="nav-transfer" class="nav-link"><i class="fa-solid fa-file-signature w-6 text-center text-gold-500"></i> Ownership Transfer</button>
 
         <div class="px-8 py-4 mt-2 nav-divider" data-tab-group="elec,maint,payroll,outgoings"><p class="text-[10px] font-black text-gold-500 uppercase tracking-widest opacity-80">Sub-Ledgers</p></div>
         <button onclick="showSection('elec')" data-tab="elec" id="nav-elec" class="nav-link"><i class="fa-solid fa-bolt w-6 text-center text-amber-500"></i> Bill Electricity</button>
@@ -747,6 +748,41 @@
         </div>
     </div>
 
+    <div id="section-transfer" class="hidden space-y-6 animate-in fade-in duration-500">
+    <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-black text-slate-900 dark:text-white">Ownership Transfer</h1>
+        <div class="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-amber-200 dark:border-amber-800">
+            <i class="fa-solid fa-shield-halved mr-2"></i> Legal Record Update
+        </div>
+    </div>
+
+    <div class="glass-panel p-10 rounded-[2.5rem] border border-slate-200 dark:border-slate-700 max-w-2xl mx-auto shadow-2xl">
+        <form id="form-transfer" onsubmit="handleTransferSubmit(event)" class="space-y-6">
+            <div>
+                <label class="block text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mb-2 tracking-widest">Select Property to Transfer</label>
+                <select id="trans-unit" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 text-slate-900 dark:text-white" onchange="updateCurrentOwnerDisplay()" required></select>
+            </div>
+
+            <div class="p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200 dark:border-slate-700">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Current Legal Owner</p>
+                <p id="trans-current-owner" class="text-lg font-black text-slate-900 dark:text-white italic">Select a unit...</p>
+            </div>
+
+            <div class="space-y-4 pt-4">
+                <h3 class="text-xs font-black text-gold-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-700 pb-2 mb-4">New Owner Information</h3>
+                <input type="text" id="trans-new-name" placeholder="New Owner Full Name" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 text-slate-900 dark:text-white" required>
+                <div class="grid grid-cols-2 gap-4">
+                    <input type="text" id="trans-new-cnic" placeholder="New Owner CNIC" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 text-slate-900 dark:text-white" required>
+                    <input type="text" id="trans-new-mobile" placeholder="New Owner Mobile" class="w-full p-4 bg-white/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl font-bold outline-none focus:border-gold-500 text-slate-900 dark:text-white">
+                </div>
+            </div>
+
+            <button type="submit" class="w-full bg-gold-500 hover:bg-gold-600 text-white p-5 rounded-2xl font-black uppercase tracking-widest transition-all shadow-lg shadow-gold-500/30 mt-4">
+                Execute Transfer of Ownership
+            </button>
+        </form>
+        </div>
+    </div>
 </main>
 
 <!-- MODALS (Updated to Glass & Theme) -->
@@ -1125,6 +1161,7 @@
         if(id === 'penalties') loadPenalties();
         if(id === 'receipts') loadReceipts();
         if(id === 'units') loadUnits();
+        if(id === 'transfer') {const opts = '<option value="">Select Unit...</option>' + unitsCache.map(u => `<option value="${u.id}">${u.unitNumber}</option>`).join(''); document.getElementById('trans-unit').innerHTML = opts;}
         if(id === 'payroll') loadPayroll();
         if(id === 'params') loadParams();
         if(id === 'staff-payslips') loadStaffPayslips();
@@ -2324,6 +2361,42 @@
                 }
             } catch (e) {
                 showToast("Connection error", true);
+            }
+        });
+    }
+
+    function updateCurrentOwnerDisplay() {
+        const id = parseInt(document.getElementById('trans-unit').value);
+        const u = unitsCache.find(x => x.id === id);
+        document.getElementById('trans-current-owner').innerText = u ? u.ownerName : "Select a unit...";
+    }
+
+    async function handleTransferSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById('trans-unit').value;
+        const newName = document.getElementById('trans-new-name').value;
+        const newCnic = document.getElementById('trans-new-cnic').value;
+        const newMobile = document.getElementById('trans-new-mobile').value;
+
+        askConfirm("Legal Transfer", `Transfer this unit to ${newName}? This updates the legal registry.`, async () => {
+            const u = unitsCache.find(x => x.id == id);
+            const updatedUnit = { ...u, ownerName: newName, cnic: newCnic, mobile: newMobile };
+
+            try {
+                const res = await fetch(`${API_URL}/units`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(updatedUnit)
+                });
+
+                if(res.ok) {
+                    showToast("Ownership successfully transferred.");
+                    document.getElementById('form-transfer').reset();
+                    await fetchMasterData(); // [cite: 250]
+                    showSection('units'); // Redirect to unit profiles
+                }
+            } catch(err) {
+                showToast("Transfer failed.", true);
             }
         });
     }
