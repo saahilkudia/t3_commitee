@@ -1079,6 +1079,7 @@
         if(id === 'income') loadIncomeStatement();
         if(id === 'balance') loadBalanceSheet();
         if(id === 'settlement') loadSettlements();
+        if(id === 'penalties') loadPenalties();
         if(id === 'receipts') loadReceipts();
         if(id === 'units') loadUnits();
         if(id === 'payroll') loadPayroll();
@@ -2211,29 +2212,34 @@
     }
 
     function loadPenalties() {
+        // Using parseFloat handles cases where penalty is null or a string
         const penaltyList = [
-            ...rawElec.filter(x => x.penalty > 0 && x.status === 'UNPAID').map(x => ({ ...x, type: 'ELEC', title: 'Electricity' })),
-            ...rawMaint.filter(x => x.penalty > 0 && x.status === 'UNPAID').map(x => ({ ...x, type: 'MAINT', title: 'Maintenance' }))
+            ...rawElec.filter(x => parseFloat(x.penalty || 0) > 0 && x.status === 'UNPAID').map(x => ({ ...x, type: 'ELEC', title: 'Electricity' })),
+            ...rawMaint.filter(x => parseFloat(x.penalty || 0) > 0 && x.status === 'UNPAID').map(x => ({ ...x, type: 'MAINT', title: 'Maintenance' }))
         ];
 
-        document.getElementById('table-penalties').innerHTML = penaltyList.map(p => `
-            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30">
-                <td class="px-6 py-4 font-black">${p.unit.unitNumber}</td>
-                <td class="px-6 py-4 font-bold text-slate-500">${p.title}</td>
-                <td class="px-6 py-4 font-medium">${p.month}</td>
-                <td class="px-6 py-4 text-right font-black text-orange-600">Rs. ${p.penalty.toLocaleString()}</td>
-                <td class="px-6 py-4 text-right">
+        const tbody = document.getElementById('table-penalties');
+        if (!tbody) return;
+
+        tbody.innerHTML = penaltyList.map(p => `
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                <td class="px-6 py-5 font-black text-slate-900 dark:text-white">${p.unit?.unitNumber || 'N/A'}</td>
+                <td class="px-6 py-5 font-bold text-slate-500">${p.title}</td>
+                <td class="px-6 py-5 font-medium">${p.month}</td>
+                <td class="px-6 py-5 text-right font-black text-orange-600">Rs. ${parseFloat(p.penalty).toLocaleString()}</td>
+                <td class="px-6 py-5 text-right">
                     <button onclick="handleWaivePenalty('${p.type}', ${p.id})" class="bg-rose-100 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase hover:bg-rose-600 hover:text-white transition-all shadow-sm">
                         Waive Penalty
                     </button>
                 </td>
             </tr>
-        `).join('') || '<tr><td colspan="5" class="text-center py-12 italic text-slate-400">No active penalties found.</td></tr>';
+        `).join('') || '<tr><td colspan="5" class="text-center py-16 italic text-slate-400">No active UNPAID penalties found.</td></tr>';
     }
 
     async function handleWaivePenalty(type, id) {
         askConfirm("Waive Penalty", "Are you sure? This will remove the penalty and update the General Ledger.", async () => {
             try {
+                // IMPORTANT: Ensure your Controller has a @PostMapping for this endpoint
                 const res = await fetch(`${API_URL}/bills/waive?type=${type}&id=${id}`, { method: 'POST' });
                 if (res.ok) {
                     showToast("Penalty waived successfully.");

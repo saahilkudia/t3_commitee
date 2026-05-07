@@ -213,6 +213,18 @@ public class T3Controller {
         }
     }
 
+    // This matches the fetch call: ${API_URL}/bills/waive?type=${type}&id=${id}
+    @PostMapping("/bills/waive")
+    public ResponseEntity<String> waiveBillPenalty(@RequestParam String type, @RequestParam Long id) {
+        try {
+            t3Services.waivePenalty(type, id);
+            return ResponseEntity.ok("Penalty successfully waived and ledger updated.");
+        } catch (Exception e) {
+            // This catches the "Cannot waive settled bill" or "Bill not found" errors
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
     // --- 5. PARAMETERS & LEDGERS ---
     @GetMapping("/employees")
     public List<Employee> getEmployees() {
