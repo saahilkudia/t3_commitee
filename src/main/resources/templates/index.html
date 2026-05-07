@@ -937,6 +937,49 @@
     </div>
 </div>
 
+<div id="modal-unit-detail" class="hidden fixed inset-0 bg-slate-900/40 dark:bg-slate-900/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4 transition-opacity">
+    <div class="glass-panel w-full max-w-2xl rounded-[2.5rem] p-10 modal-pop border-t-4 border-t-gold-500 shadow-2xl relative">
+        <button onclick="closeModal('modal-unit-detail')" class="absolute top-6 right-6 text-slate-400 hover:text-rose-500 transition-colors"><i class="fa-solid fa-circle-xmark text-2xl"></i></button>
+        
+        <div class="flex items-center gap-4 mb-8 border-b border-slate-200 dark:border-slate-700 pb-6">
+            <div class="w-16 h-16 rounded-2xl bg-gold-500 text-white flex items-center justify-center text-2xl shadow-lg shadow-gold-500/20">
+                <i class="fa-solid fa-building"></i>
+            </div>
+            <div>
+                <h2 class="text-3xl font-black text-slate-900 dark:text-white" id="det-unit-num">Unit Details</h2>
+                <p class="text-xs font-bold text-gold-500 uppercase tracking-widest">Property Profile & Occupant Info</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8">
+            <div class="space-y-1">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Owner Name</p>
+                <p class="text-lg font-bold text-slate-800 dark:text-slate-200" id="det-owner"></p>
+            </div>
+            <div class="space-y-1">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">CNIC Number</p>
+                <p class="text-lg font-mono font-bold text-slate-800 dark:text-slate-200" id="det-cnic"></p>
+            </div>
+            <div class="space-y-1">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Mobile Number</p>
+                <p class="text-lg font-bold text-slate-800 dark:text-slate-200" id="det-mobile"></p>
+            </div>
+            <div class="space-y-1">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Registration Date</p>
+                <p class="text-lg font-bold text-slate-800 dark:text-slate-200" id="det-reg-date"></p>
+            </div>
+            <div class="col-span-2 space-y-1">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Physical Address</p>
+                <p class="text-lg font-medium text-slate-800 dark:text-slate-200" id="det-address"></p>
+            </div>
+        </div>
+        
+        <div class="mt-10 pt-6 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+            <button onclick="closeModal('modal-unit-detail')" class="px-8 py-3 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-slate-200 transition-all">Close Profile</button>
+        </div>
+    </div>
+</div>
+
 <!-- HIDDEN PRINT CONTAINER (Populated dynamically via JS) -->
 <div id="print-container" class="print-only"></div>
 
@@ -1447,11 +1490,42 @@
 
     async function loadUnits() {
         const kw = document.getElementById('unit-search').value; const res = await fetch(`${API_URL}/units${kw ? '?keyword=' + kw : ''}`); unitsCache = await res.json();
-        document.getElementById('table-units').innerHTML = unitsCache.map(u => `<tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"><td class="px-8 py-5 font-black text-slate-900 dark:text-white text-base">${u.unitNumber}</td><td class="px-8 py-5 font-bold text-slate-700 dark:text-slate-300">${u.ownerName}</td><td class="px-8 py-5 font-mono text-slate-500 dark:text-slate-400 text-xs">${u.cnic || '-'}</td><td class="px-8 py-5 text-right space-x-1"><button onclick="editUnit(${u.id})" class="text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-pen"></i></button><button onclick="deleteUnit(${u.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-trash"></i></button></td></tr>`).join('');
-    }
+        document.getElementById('table-units').innerHTML = unitsCache.map(u => `
+            <tr class="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-all cursor-pointer group" onclick="viewUnitDetail(${u.id})">
+                <td class="px-8 py-5 font-black text-slate-900 dark:text-white text-base">
+                    <span class="text-gold-500 mr-2 opacity-0 group-hover:opacity-100 transition-opacity"><i class="fa-solid fa-eye"></i></span>
+                    ${u.unitNumber}
+                </td>
+                <td class="px-8 py-5 font-bold text-slate-700 dark:text-slate-300">${u.ownerName}</td>
+                <td class="px-8 py-5 font-mono text-slate-500 dark:text-slate-400 text-xs">${u.cnic || '-'}</td>
+                <td class="px-8 py-5 text-right space-x-1" onclick="event.stopPropagation()">
+                    <button onclick="editUnit(${u.id})" class="text-gold-500 hover:bg-gold-50 dark:hover:bg-gold-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-pen"></i></button>
+                    <button onclick="deleteUnit(${u.id})" class="text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 p-2 rounded-xl transition-colors"><i class="fa-solid fa-trash"></i></button>
+                </td>
+            </tr>
+        `).join('');
+        }
+
     function editUnit(id) { const u = unitsCache.find(x => x.id === id); if(!u) return; document.getElementById('in-unit-id').value = u.id; document.getElementById('u-num').value = u.unitNumber; document.getElementById('u-owner').value = u.ownerName; document.getElementById('u-cnic').value = u.cnic; openModal('modal-unit'); }
     async function handleUnitSave(e) { e.preventDefault(); const p = { unitNumber: document.getElementById('u-num').value, ownerName: document.getElementById('u-owner').value, cnic: document.getElementById('u-cnic').value, mobile: document.getElementById('u-mobile').value, address: document.getElementById('u-address').value }; const idVal = document.getElementById('in-unit-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/units`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Unit saved."); closeModal('modal-unit'); loadUnits(); }
     function deleteUnit(id) { askConfirm("Delete Unit", "Delete this property?", async () => { const res = await fetch(`${API_URL}/units/${id}`, { method: 'DELETE' }); if(res.ok) { showToast("Unit removed."); loadUnits(); } else { showToast(await res.text(), true); } }); }
+
+    function viewUnitDetail(id) {
+        const u = unitsCache.find(x => x.id === id);
+        if (!u) return;
+
+        document.getElementById('det-unit-num').innerText = "Unit " + u.unitNumber;
+        document.getElementById('det-owner').innerText = u.ownerName || 'Not Assigned';
+        document.getElementById('det-cnic').innerText = u.cnic || 'N/A';
+        document.getElementById('det-mobile').innerText = u.mobile || 'N/A';
+        document.getElementById('det-address').innerText = u.address || 'No address provided.';
+        
+        // Format the registration date safely from the backend array
+        const regDate = u.registeredAt ? new Date(u.registeredAt[0], u.registeredAt[1]-1, u.registeredAt[2]).toLocaleDateString() : 'N/A';
+        document.getElementById('det-reg-date').innerText = regDate;
+
+        openModal('modal-unit-detail');
+    }
 
     async function loadParams() {
         const emps = await (await fetch(`${API_URL}/employees`)).json(); staffCache = emps;
