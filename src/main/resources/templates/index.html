@@ -1548,20 +1548,32 @@
     async function handleUnitSave(e) { e.preventDefault(); const p = { unitNumber: document.getElementById('u-num').value, ownerName: document.getElementById('u-owner').value, cnic: document.getElementById('u-cnic').value, mobile: document.getElementById('u-mobile').value, address: document.getElementById('u-address').value, ownerEmail: document.getElementById('unit-email').value }; const idVal = document.getElementById('in-unit-id').value; if(idVal) p.id = parseInt(idVal); await fetch(`${API_URL}/units`, { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(p) }); showToast("Unit saved."); closeModal('modal-unit'); loadUnits(); }
     function deleteUnit(id) { askConfirm("Delete Unit", "Delete this property?", async () => { const res = await fetch(`${API_URL}/units/${id}`, { method: 'DELETE' }); if(res.ok) { showToast("Unit removed."); loadUnits(); } else { showToast(await res.text(), true); } }); }
 
-    function viewUnitDetail(id) {
+    async function viewUnitDetail(id) {
         const u = unitsCache.find(x => x.id === id);
         if (!u) return;
 
         document.getElementById('det-unit-num').innerText = "Unit " + u.unitNumber;
         document.getElementById('det-owner').innerText = u.ownerName || 'Not Assigned';
+        document.getElementById('det-email').innerText = u.email || 'No email registered';
         document.getElementById('det-cnic').innerText = u.cnic || 'N/A';
         document.getElementById('det-mobile').innerText = u.mobile || 'N/A';
-        ocument.getElementById('u-email').value = u.email || '';
         document.getElementById('det-address').innerText = u.address || 'No address provided.';
         
-        // Format the registration date safely from the backend array
         const regDate = u.registeredAt ? new Date(u.registeredAt[0], u.registeredAt[1]-1, u.registeredAt[2]).toLocaleDateString() : 'N/A';
         document.getElementById('det-reg-date').innerText = regDate;
+
+        // FETCH HISTORY
+        try {
+            const res = await fetch(`${API_URL}/units/${id}/history`);
+            const history = await res.json();
+            document.getElementById('det-history-body').innerHTML = history.map(h => `
+                <tr class="border-t border-slate-100 dark:border-slate-700/50">
+                    <td class="py-2">${new Date(h.transferDate).toLocaleDateString()}</td>
+                    <td class="py-2 text-rose-500">${h.previousOwner}</td>
+                    <td class="py-2 text-green-500">${h.newOwner}</td>
+                </tr>
+            `).join('') || '<tr><td colspan="3" class="py-2 italic text-slate-400">First Allottee / No prior transfers</td></tr>';
+        } catch (e) { document.getElementById('det-history-body').innerHTML = '<tr><td colspan="3" class="py-2 text-rose-500">History Load Failed</td></tr>'; }
 
         openModal('modal-unit-detail');
     }
