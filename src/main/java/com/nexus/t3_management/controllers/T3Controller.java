@@ -137,6 +137,16 @@ public class T3Controller {
         }
     }
 
+    // NEW: Save Custom Customer Charge Endpoint
+    @PostMapping("/bills/charge")
+    public ResponseEntity<?> saveCustomerCharge(@RequestBody CustomerCharge charge) {
+        try {
+            return ResponseEntity.ok(t3Service.saveCustomerCharge(charge));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Validation Error: " + e.getMessage());
+        }
+    }
+
     @PutMapping("/bills/maintenance/{id}/penalty")
     public ResponseEntity<?> updateMaintenancePenalty(@PathVariable Long id, @RequestParam Double amount) {
         try {
@@ -274,6 +284,12 @@ public class T3Controller {
     @GetMapping("/ledgers/maint")
     public List<MaintenanceBill> getMaintLedger() {
         return t3Service.getAllMaint();
+    }
+
+    // NEW: Get Ledgers endpoint for Custom Charges
+    @GetMapping("/ledgers/charges")
+    public List<CustomerCharge> getChargesLedger() {
+        return t3Service.getAllCustomerCharges();
     }
 
     // New: Trigger SQL Backup Download

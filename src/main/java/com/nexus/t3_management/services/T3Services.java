@@ -28,6 +28,9 @@ public class T3Services {
     @Autowired private ChartOfAccountRepository coaRepo;
     @Autowired private AppUserRepository appUserRepo;
     @Autowired private AccountingEngine accountingEngine;
+    
+    // NEW: Customer Charge Repository
+    @Autowired private CustomerChargeRepository chargeRepo;
 
     // --- 0. AUTHENTICATION & SECURITY (RBAC) ---
     @PostConstruct
@@ -64,6 +67,9 @@ public class T3Services {
         summary.put("recentMaint", maintRepo.findTop10ByOrderByCreatedAtDesc());
         summary.put("recentSalaries", salaryRepo.findTop10ByOrderByPaymentDateDesc());
         summary.put("recentExpenses", expenseRepo.findTop10ByOrderByDateDesc());
+        
+        // Include recent custom charges in dashboard stats
+        summary.put("recentCharges", chargeRepo.findTop10ByOrderByCreatedAtDesc());
         return summary;
     }
 
@@ -163,6 +169,24 @@ public class T3Services {
 
         return maintRepo.save(bill);
     }
+    
+    // NEW: Save Custom Charge Method
+    @Transactional
+    public CustomerCharge saveCustomerCharge(CustomerCharge charge) {
+        charge.setStatus("UNPAID");
+        if (charge.getCreatedAt() == null) charge.setCreatedAt(LocalDate.now());
+        charge.setUnit(unitRepo.findById(charge.getUnit().getId()).orElseThrow());
+        charge = chargeRepo.save(charge);
+
+        JournalVoucher jv = new JournalVoucher();
+        jv.setVoucherType("SV");
+        jv.setMemo("Custom Charge: " + charge.getMemo() + " (Unit " + charge.getUnit().getUnitNumber() + ")");
+        jv.getLines().add(accountingEngine.createLine(getSysAcc("AR"), charge.getAmount(), 0.0, "A/R Created"));
+        jv.getLines().add(accountingEngine.createLine(getSysAcc("REV"), 0.0, charge.getAmount(), "Charge Revenue"));
+        accountingEngine.postVoucher(jv);
+
+        return charge;
+    }
 
     @Transactional
     public StaffSalary saveSalary(StaffSalary s) {
@@ -248,6 +272,27 @@ public class T3Services {
                 }
                 mb.setStatus("PAID"); mb.setAccount(bankAcc); maintRepo.save(mb);
                 break;
+                
+            // NEW: Settlement Logic for Custom Charges
+            case "CHARGE":
+                CustomerCharge cc = chargeRepo.findById(recordId).orElseThrow();
+                if (cc.getStatus().equals("PAID")) throw new RuntimeException("Voucher already settled.");
+                if (amountPaid > cc.getAmount()) throw new RuntimeException("Cannot pay more than billed.");
+
+                jv.setVoucherType("BR"); jv.setMemo("Receipt for Custom Charge U-" + cc.getUnit().getUnitNumber());
+                jv.getLines().add(accountingEngine.createLine(bankAcc, amountPaid, 0.0, "Funds Received"));
+                jv.getLines().add(accountingEngine.createLine(arAcc, 0.0, amountPaid, "A/R Cleared"));
+                accountingEngine.postVoucher(jv);
+
+                if (amountPaid < cc.getAmount()) {
+                    CustomerCharge remainder = new CustomerCharge();
+                    remainder.setUnit(cc.getUnit()); remainder.setMemo(cc.getMemo() + " (Arrears)");
+                    remainder.setAmount(cc.getAmount() - amountPaid); remainder.setStatus("UNPAID");
+                    chargeRepo.save(remainder);
+                    cc.setAmount(amountPaid);
+                }
+                cc.setStatus("PAID"); cc.setAccount(bankAcc); chargeRepo.save(cc);
+                break;
 
             case "EXP":
                 BuildingExpense exp = expenseRepo.findById(recordId).orElseThrow();
@@ -304,6 +349,10 @@ public class T3Services {
 
     public List<ElectricityBill> getAllElec() { return elecRepo.findAll(); }
     public List<MaintenanceBill> getAllMaint() { return maintRepo.findAll(); }
+    
+    // NEW: Get all Custom Charges
+    public List<CustomerCharge> getAllCustomerCharges() { return chargeRepo.findAll(); }
+    
     @Transactional
     public void saveBulkMaint(Double amount, String month) {
         List<Unit> allUnits = unitRepo.findAll();
