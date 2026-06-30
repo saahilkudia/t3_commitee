@@ -508,4 +508,47 @@ public class T3Services {
                 .body("System Error: " + e.getMessage());
         }
     }
+
+    @Transactional
+    public void deleteBill(String type, Long id) {
+        JournalVoucher revJv = new JournalVoucher();
+        revJv.setVoucherType("JV");
+        revJv.setMemo("Reversal of Bill Type: " + type + " ID: " + id);
+        
+        if ("ELEC".equals(type)) {
+            ElectricityBill bill = elecRepo.findById(id).orElseThrow();
+            revJv.getLines().add(accountingEngine.createLine(getSysAcc("REV"), bill.getTotal(), 0.0, "Reversal"));
+            revJv.getLines().add(accountingEngine.createLine(getSysAcc("AR"), 0.0, bill.getTotal(), "Reversal"));
+            elecRepo.delete(bill);
+        } else if ("MAINT".equals(type)) {
+            MaintenanceBill bill = maintRepo.findById(id).orElseThrow();
+            revJv.getLines().add(accountingEngine.createLine(getSysAcc("REV"), bill.getTotal(), 0.0, "Reversal"));
+            revJv.getLines().add(accountingEngine.createLine(getSysAcc("AR"), 0.0, bill.getTotal(), "Reversal"));
+            maintRepo.delete(bill);
+        } else if ("CHARGE".equals(type)) {
+            CustomerCharge bill = chargeRepo.findById(id).orElseThrow();
+            revJv.getLines().add(accountingEngine.createLine(getSysAcc("REV"), bill.getAmount(), 0.0, "Reversal"));
+            revJv.getLines().add(accountingEngine.createLine(getSysAcc("AR"), 0.0, bill.getAmount(), "Reversal"));
+            chargeRepo.delete(bill);
+        }
+        accountingEngine.postVoucher(revJv);
+    }
+
+    @Transactional
+    public void updateBillAmount(String type, Long id, Double newAmount) {
+        if ("ELEC".equals(type)) {
+            ElectricityBill bill = elecRepo.findById(id).orElseThrow();
+            bill.setTotal(newAmount);
+            elecRepo.save(bill);
+        } else if ("MAINT".equals(type)) {
+            MaintenanceBill bill = maintRepo.findById(id).orElseThrow();
+            bill.setAmount(newAmount);
+            bill.setTotal(newAmount);
+            maintRepo.save(bill);
+        } else if ("CHARGE".equals(type)) {
+            CustomerCharge bill = chargeRepo.findById(id).orElseThrow();
+            bill.setAmount(newAmount);
+            chargeRepo.save(bill);
+        }
+    }
 }

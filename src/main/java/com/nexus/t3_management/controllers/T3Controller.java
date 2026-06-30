@@ -314,4 +314,24 @@ public class T3Controller {
             return ResponseEntity.status(500).body("Controller Error (Restore): " + e.getMessage());
         }
     }
+
+    @DeleteMapping("/bills/{type}/{id}")
+    public ResponseEntity<?> deleteBill(@PathVariable String type, @PathVariable Long id) {
+        try {
+            t3Service.deleteBill(type, id);
+            return ResponseEntity.ok("Deleted");
+        } catch(Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PutMapping("/bills/{type}/{id}/amount")
+    public ResponseEntity<?> updateBill(@PathVariable String type, @PathVariable Long id, @RequestParam Double amount) {
+        try {
+            t3Service.updateBillAmount(type, id, amount);
+            return ResponseEntity.ok("Updated");
+        } catch(Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
 }
