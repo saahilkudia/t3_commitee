@@ -2214,6 +2214,7 @@
             let uBills = [];
             rawElec.filter(x => x.unit.id === targetId).forEach(x => { uBills.push({ d: new Date(x.createdAt), type: 'Electricity Charges', m: x.month, s: x.status, a: x.total, penalty: x.penalty || 0 }); });
             rawMaint.filter(x => x.unit.id === targetId).forEach(x => { uBills.push({ d: new Date(x.createdAt), type: 'Maintenance Dues', m: x.month, s: x.status, a: x.total, penalty: x.penalty || 0 }); });
+            rawCharges.filter(x => x.unit?.id === targetId).forEach(x => { uBills.push({ d: new Date(x.createdAt), type: 'Custom Charge: ' + x.memo, m: x.memo, s: x.status, a: x.amount, penalty: 0 }); });
             uBills.sort((a,b) => a.d - b.d);
             let openingBal = 0, periodDr = 0, periodCr = 0;
             uBills.forEach(b => { if (b.d < s && b.s === 'UNPAID') openingBal += b.a; });
